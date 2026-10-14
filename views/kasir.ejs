@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Scanner Barcode Library -->
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+</head>
+<body class="bg-light">
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold"><i class="bi bi-calculator me-2 text-primary"></i>Kasir UMKM Gratis</h3>
+            <a href="/dashboard/history" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali</a>
+        </div>
+
+        <div class="row g-4">
+            <!-- Sisi Kiri: Scanner Kamera & Input Manual -->
+            <div class="col-md-5">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white font-semibold">
+                        <i class="bi bi-qr-code-scan me-2 text-primary"></i>Scan Barcode Barang
+                    </div>
+                    <div class="card-body text-center">
+                        <!-- Area Kamera Scan -->
+                        <div id="reader" style="width: 100%; min-height: 250px;" class="border rounded bg-dark"></div>
+                        <p class="text-muted small mt-2">Arahkan kamera ke Barcode / QR Code produk</p>
+                    </div>
+                </div>
+
+                <!-- Form Tambah Produk Baru -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold">Tambah / Update Stok Produk</div>
+                    <div class="card-body">
+                        <form id="formAddProduct">
+                            <div class="mb-2">
+                                <label class="form-label small">Kode Barcode</label>
+                                <input type="text" id="pBarcode" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Nama Produk</label>
+                                <input type="text" id="pNama" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="row g-2 mb-3">
+							    <div class="col-4">
+							        <label class="form-label small">Harga (Rp)</label>
+							        <input type="number" id="pHarga" class="form-control form-control-sm" required>
+							    </div>
+							    <div class="col-4">
+							        <label class="form-label small">Stok</label>
+							        <input type="number" id="pStok" class="form-control form-control-sm" value="10" required>
+							    </div>
+							    <div class="col-4">
+							        <label class="form-label small">Satuan</label>
+							        <select id="pSatuan" class="form-select form-select-sm">
+							            <option value="Pcs">Pcs</option>
+							            <option value="Botol">Botol</option>
+							            <option value="Kg">Kg</option>
+							            <option value="Pack">Pack</option>
+							            <option value="Dus">Dus</option>
+							        </select>
+							    </div>
+							</div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small">Harga (Rp)</label>
+                                    <input type="number" id="pHarga" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Stok Tambahan</label>
+                                    <input type="number" id="pStok" class="form-control form-control-sm" value="10" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-plus-circle me-1"></i>Simpan Produk</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sisi Kanan: Keranjang Transaksi (Struk Kasir) -->
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-cart3 me-2 text-primary"></i>Keranjang Belanja</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearCart()"><i class="bi bi-trash"></i> Riset</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table align-middle mb-0" id="cartTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Produk</th>
+                                    <th>Harga</th>
+                                    <th style="width: 100px;">Qty</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartBody">
+                                <!-- Item belanjaan akan muncul di sini secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-5 fw-bold">Total Bayar:</span>
+                            <span class="fs-4 fw-bold text-success" id="totalDisplay">Rp 0</span>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2 fw-bold" onclick="processCheckout()"><i class="bi bi-check2-circle me-1"></i>Selesaikan Transaksi (Bayar)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Modal Edit Produk -->
+<div class="modal fade" id="modalEditProduct" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Produk</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="mb-2">
+            <label class="form-label small">Nama Produk</label>
+            <input type="text" id="editNama" class="form-control" required>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label class="form-label small">Harga (Rp)</label>
+                <input type="number" id="editHarga" class="form-control" required>
+            </div>
+            <div class="col-4">
+                <label class="form-label small">Stok</label>
+                <input type="number" id="editStok" class="form-control" required>
+            </div>
+            <div class="col-4">
+                <label class="form-label small">Satuan</label>
+                <select id="editSatuan" class="form-select">
+                    <option value="Pcs">Pcs</option>
+                    <option value="Botol">Botol</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Pack">Pack</option>
+                    <option value="Dus">Dus</option>
+                </select>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveProductEdit()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let cart = [];
+
+        // 1. Inisialisasi Scanner Barcode Kamera
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
+        html5QrcodeScanner.render(onScanSuccess);
+
+        function onScanSuccess(decodedText) {
+            document.getElementById('pBarcode').value = decodedText;
+            fetchProductByBarcode(decodedText);
+        }
+
+        // Fungsi Buka Modal Edit
+		function openEditModal(id, nama, harga, stok, satuan) {
+		    document.getElementById('editId').value = id;
+		    document.getElementById('editNama').value = nama;
+		    document.getElementById('editHarga').value = harga;
+		    document.getElementById('editStok').value = stok;
+		    document.getElementById('editSatuan').value = satuan || 'Pcs';
+		    
+		    const modal = new bootstrap.Modal(document.getElementById('modalEditProduct'));
+		    modal.show();
+		}
+
+		// Simpan Edit Produk
+		async function saveProductEdit() {
+		    const id = document.getElementById('editId').value;
+		    const body = {
+		        nama_produk: document.getElementById('editNama').value,
+		        harga: document.getElementById('editHarga').value,
+		        stok: document.getElementById('editStok').value,
+		        satuan: document.getElementById('editSatuan').value
+		    };
+
+		    const res = await fetch(`/api/v1/product/update/${id}`, {
+		        method: 'PUT',
+		        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+		        body: JSON.stringify(body)
+		    });
+
+		    const data = await res.json();
+		    if (data.success) {
+		        alert(data.message);
+		        location.reload();
+		    } else {
+		        alert('Gagal memperbarui: ' + data.message);
+		    }
+		}
+
+		// Hapus Produk
+		async function deleteProduct(id) {
+		    if (!confirm('Yakin ingin menghapus produk ini?')) return;
+
+		    const res = await fetch(`/api/v1/product/delete/${id}`, {
+		        method: 'DELETE',
+		        headers: { 'x-csrf-token': csrfToken }
+		    });
+
+		    const data = await res.json();
+		    if (data.success) {
+		        alert(data.message);
+		        location.reload();
+		    } else {
+		        alert('Gagal menghapus: ' + data.message);
+		    }
+		}
+
+        // 2. Ambil Data Produk saat Scan
+        async function fetchProductByBarcode(barcode) {
+            const res = await fetch(`/api/v1/product/scan/${barcode}`);
+            const data = await res.json();
+            if (data.success) {
+                addToCart(data.product);
+            } else {
+                alert('Produk belum terdaftar! Silakan isi form di bawah untuk menambahkannya.');
+            }
+        }
+
+        // 3. Tambah Ke Keranjang
+        function addToCart(product) {
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ id: product.id, name: product.nama_produk, price: parseFloat(product.harga), qty: 1 });
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('cartBody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.name}</strong></td>
+                        <td>Rp ${item.price.toLocaleString('id-ID')}</td>
+                        <td>
+                            <input type="number" min="1" class="form-control form-control-sm" value="${item.qty}" onchange="updateQty(${index}, this.value)">
+                        </td>
+                        <td>Rp ${subtotal.toLocaleString('id-ID')}</td>
+                        <td><button class="btn btn-sm btn-link text-danger" onclick="removeItem(${index})"><i class="bi bi-x-lg"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalDisplay').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function updateQty(index, qty) {
+            cart[index].qty = parseInt(qty) || 1;
+            renderCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // 4. Proses Checkout Bayar
+        async function processCheckout() {
+            if (cart.length === 0) return alert('Keranjang masih kosong!');
+            
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+            const res = await fetch('/api/v1/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken
+                },
+                body: JSON.stringify({ items: cart, total_harga: total })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert('Transaksi Berhasil Disimpan!');
+                clearCart();
+            } else {
+                alert('Gagal memproses transaksi: ' + data.message);
+            }
+        }
+
+        // 5. Submit Tambah Produk
+        document.getElementById('formAddProduct').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                barcode: document.getElementById('pBarcode').value,
+                nama_produk: document.getElementById('pNama').value,
+                harga: document.getElementById('pHarga').value,
+                stok: document.getElementById('pStok').value
+            };
+
+            const res = await fetch('/api/v1/product/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                document.getElementById('formAddProduct').reset();
+            }
+        });
+    </script>
+</body>
+</html>

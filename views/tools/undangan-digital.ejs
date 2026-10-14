@@ -1,0 +1,128 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) hue-rotate(180deg);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-10 px-4">
+
+    <div class="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+        <h1 class="text-2xl font-bold text-white mb-1"><i class="fa-solid fa-heart text-amber-500 mr-2"></i>Pembuat Undangan Digital Pro</h1>
+        <p class="text-slate-400 text-sm mb-6">Atur detail undangan, latar belakang, musik, dan galeri timeline Anda.</p>
+
+        <form action="/api/undangan/preview" method="POST" enctype="multipart/form-data" class="space-y-6">
+            
+            <!-- DATA UTAMA -->
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-200">Nama Pasangan Mempelai</label>
+                    <input type="text" name="names" required placeholder="Contoh: Ani & Ano" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-200">Tanggal Acara</label>
+                    <input type="date" name="event_date" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500">
+                </div>
+            </div>
+
+            <!-- OPSI NUANSA (ISLAMI / UMUM) -->
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-200">Gaya / Nuansa Undangan</label>
+                <select name="invitation_style" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500">
+                    <option value="umum">Umum / Modern (Ayat / Ucapan Universal)</option>
+                    <option value="islami">Islami (Dilengkapi Basmallah & QS Ar-Rum: 21)</option>
+                </select>
+            </div>
+
+            <!-- PILIH LAYOUT TAMPILAN -->
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-200">Pilih Layout Tampilan</label>
+                <select name="layout_style" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500">
+                    <option value="classic">Classic Elegant (Nuansa Mewah & Gold)</option>
+                    <option value="modern">Modern Minimalist (Bersih & Elegan)</option>
+                    <option value="floral">Floral Romantic (Sentuhan Bunga & Soft)</option>
+                </select>
+            </div>
+
+            <!-- ISI / DETAIL ACARA & ORANG TUA -->
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-200">Isi (Nama Orang Tua, Tempat Resepsi, & Detail Acara)</label>
+                <textarea name="event_details" rows="4" placeholder="Putra dari Bpk. A & Ibu B&#10;&&#10;Putri dari Bpk. C & Ibu D&#10;&#10;Tempat: Gedung Serbaguna Lt. 2" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500"></textarea>
+            </div>
+
+            <!-- LINK GOOGLE MAPS -->
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-200">Link Google Maps</label>
+                <input type="url" name="maps_link" placeholder="https://goo.gl/maps/..." class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <!-- DAFTAR TAMU -->
+            <div>
+                <label class="block text-sm font-semibold mb-1 text-slate-200">Daftar Tamu Undangan</label>
+                <p class="text-xs text-slate-400 mb-2">Pisahkan dengan tanda titik koma (<code class="text-amber-400">;</code>). Contoh: <span class="italic">Budi Santoso; Siti Aminah; Joko Widodo</span></p>
+                <textarea name="guest_list" rows="3" placeholder="Budi Santoso; Siti Aminah" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:ring-2 focus:ring-amber-500"></textarea>
+            </div>
+
+            <!-- BACKGROUND PRESET & CUSTOM UPLOAD -->
+            <div class="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <label class="block text-sm font-semibold text-slate-200">Background Undangan</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer border-2 border-slate-800 rounded-lg p-2 text-center hover:border-amber-500">
+                        <input type="radio" name="preset_background" value="" checked class="mb-1">
+                        <span class="text-xs text-slate-300 block">Default Polos</span>
+                    </label>
+                    <label class="cursor-pointer border-2 border-slate-800 rounded-lg p-2 text-center hover:border-amber-500">
+                        <input type="radio" name="preset_background" value="/img/bg-gold.jpg" class="mb-1">
+                        <span class="text-xs text-slate-300 block">Classic Gold</span>
+                    </label>
+                    <label class="cursor-pointer border-2 border-slate-800 rounded-lg p-2 text-center hover:border-amber-500">
+                        <input type="radio" name="preset_background" value="custom" class="mb-1">
+                        <span class="text-xs text-slate-300 block">Upload Sendiri</span>
+                    </label>
+                </div>
+                <input type="file" name="background_img" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:bg-amber-600 file:text-white bg-slate-900 rounded-xl border border-slate-800 cursor-pointer mt-2">
+            </div>
+
+            <!-- AUDIO BACKSOUND -->
+            <div>
+                <label class="block text-xs font-semibold mb-1 text-slate-300">Musik Latar / Backsound (MP3)</label>
+                <input type="file" name="backsound" accept="audio/mp3" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:bg-amber-600 file:text-white bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+            </div>
+
+            <!-- FOTO KOLASE TIMELINE & CAPTION CUSTOM -->
+            <div class="space-y-4 border-t border-slate-800 pt-4">
+                <label class="block text-sm font-semibold text-slate-200">Galeri Foto Timeline & Keterangan (Maksimal 5)</label>
+                
+                <div>
+                    <input type="file" name="collage_photos" accept="image/*" multiple class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:bg-amber-600 file:text-white bg-slate-950 rounded-xl border border-slate-800 cursor-pointer mb-3">
+                </div>
+
+                <div class="space-y-2">
+                    <input type="text" name="timeline_captions[]" placeholder="Keterangan Foto 1 (Contoh: Pertemuan Pertama)" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100">
+                    <input type="text" name="timeline_captions[]" placeholder="Keterangan Foto 2 (Contoh: Masa Pendekatan)" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100">
+                    <input type="text" name="timeline_captions[]" placeholder="Keterangan Foto 3 (Contoh: Lamaran Resmi)" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100">
+                    <input type="text" name="timeline_captions[]" placeholder="Keterangan Foto 4 (Contoh: Pra-Wedding)" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100">
+                    <input type="text" name="timeline_captions[]" placeholder="Keterangan Foto 5 (Contoh: Menuju Hari H)" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg transition">
+                Pratinjau Hasil Desain <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </form>
+    </div>
+
+</body>
+</html>
+<%- include('../partials/footer') %>

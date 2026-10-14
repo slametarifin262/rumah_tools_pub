@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold"><i class="bi bi-calculator text-primary me-2"></i>Kasir UMKM</h3>
+            <div class="d-flex gap-2">
+                <a href="/dashboard/inventory" class="btn btn-outline-secondary btn-sm">Manajemen Inventaris</a>
+                <a href="/dashboard/reports" class="btn btn-outline-secondary btn-sm">Laporan</a>
+                <a href="/dashboard/riwayat" class="btn btn-outline-secondary btn-sm">Riwayat Penggunaan</a>
+                <a href="/dashboard/api-key" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Sisi Kiri: Opsi Pencarian & Scanner -->
+            <div class="col-md-5">
+                <!-- OPSI 1: Ketik Manual Kode / Nama Produk -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white fw-bold">
+                        <i class="bi bi-search me-2 text-primary"></i>1. Cari Kode / Nama Produk
+                    </div>
+                    <div class="card-body">
+                        <form id="formSearch" onsubmit="handleSearch(event)">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Ketik Kode Barcode atau Nama..." autofocus>
+                                <button class="btn btn-primary" type="submit">Cari</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- OPSI 2: Scan QR / Barcode Kamera -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-qr-code-scan me-2 text-primary"></i>2. Scan Kamera</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="toggleCamera()">Buka / Tutup Kamera</button>
+                    </div>
+                    <div class="card-body text-center" id="camContainer" style="display: none;">
+                        <div id="reader" style="width: 100%; min-height: 200px;" class="bg-dark rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sisi Kanan: Keranjang & Detail Pembayaran -->
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-cart3 me-2 text-primary"></i>Keranjang Transaksi</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Reset</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Produk</th>
+                                    <th>Harga</th>
+                                    <th style="width: 80px;">Qty</th>
+                                    <th>Satuan</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartBody">
+                                <tr><td colspan="7" class="text-center text-muted py-3">Belum ada item ditambahkan.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Keterangan / Metode Pembayaran</label>
+                            <select id="ketBayar" class="form-select" onchange="toggleInputBayar()">
+                                <option value="Tunai">Tunai / Cash</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="Transfer Bank">Transfer Bank</option>
+                                <option value="Nontunai">Nontunai / Debit</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="bayarWrapper">
+                            <label class="form-label fw-bold small">Jumlah Uang Diterima (Cash)</label>
+                            <input type="number" id="inputBayar" class="form-control" min="0" placeholder="Contoh: 50000">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-5 fw-bold">Total Harga:</span>
+                            <span class="fs-4 fw-bold text-success" id="totalDisplay">Rp 0</span>
+                        </div>
+                        <button class="btn btn-success w-100 py-2 fw-bold" onclick="processCheckout()">
+                            <i class="bi bi-check-circle me-1"></i>Simpan & Selesaikan Transaksi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let cart = [];
+        let html5QrcodeScanner = null;
+
+        function toggleInputBayar() {
+            const ketBayar = document.getElementById('ketBayar').value;
+            document.getElementById('bayarWrapper').style.display = (ketBayar === 'Tunai') ? 'block' : 'none';
+        }
+
+        // Cari Produk Manual
+        async function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const res = await fetch(`/api/v1/product/search?q=${encodeURIComponent(query)}`);
+            const result = await res.json();
+
+            if (result.success && result.data.length > 0) {
+                addToCart(result.data[0]);
+                document.getElementById('searchInput').value = '';
+            } else {
+                alert('Produk tidak ditemukan!');
+            }
+        }
+
+        // Tambah Produk ke Keranjang
+        function addToCart(product) {
+            const existing = cart.find(i => i.id_produk === product.id);
+            if (existing) {
+                existing.qty++;
+                existing.subtotal = existing.qty * existing.harga;
+            } else {
+                cart.push({
+                    id_produk: product.id,
+                    kode_produk: product.barcode,
+                    nama_produk: product.nama_produk,
+                    satuan: product.satuan || 'Pcs',
+                    harga: parseFloat(product.harga),
+                    qty: 1,
+                    subtotal: parseFloat(product.harga)
+                });
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('cartBody');
+            if (cart.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">Belum ada item ditambahkan.</td></tr>';
+                document.getElementById('totalDisplay').innerText = 'Rp 0';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.subtotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${item.kode_produk}</code></td>
+                        <td><strong>${item.nama_produk}</strong></td>
+                        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
+                        <td>
+                            <input type="number" min="1" class="form-control form-control-sm" value="${item.qty}" onchange="updateQty(${index}, this.value)">
+                        </td>
+                        <td>${item.satuan}</td>
+                        <td>Rp ${item.subtotal.toLocaleString('id-ID')}</td>
+                        <td><button class="btn btn-sm btn-link text-danger p-0" onclick="removeItem(${index})"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalDisplay').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function updateQty(index, val) {
+            const qty = parseInt(val) || 1;
+            cart[index].qty = qty;
+            cart[index].subtotal = qty * cart[index].harga;
+            renderCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // Toggle Kamera Scanner
+        function toggleCamera() {
+            const container = document.getElementById('camContainer');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                if (!html5QrcodeScanner) {
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 200, height: 150 } });
+                    html5QrcodeScanner.render(onScanSuccess);
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            document.getElementById('searchInput').value = decodedText;
+            handleSearch(new Event('submit'));
+        }
+
+        // Process Checkout
+         async function processCheckout() {
+		    if (cart.length === 0) return alert('Keranjang belanja masih kosong!');
+
+		    const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+		    const ketBayar = document.getElementById('ketBayar').value; // Tunai / QRIS / E-Wallet / Debit
+		    let bayar = 0;
+		    let kembali = 0;
+
+		    if (ketBayar === 'Tunai') {
+		        bayar = parseFloat(document.getElementById('inputBayar').value) || 0;
+		        if (bayar < total) {
+		            return alert('Jumlah uang bayar kurang dari total belanja!');
+		        }
+		        kembali = bayar - total;
+		    } else {
+		        // Jika QRIS/E-Wallet/Debit, bayar dianggap pas
+		        bayar = total;
+		        kembali = 0;
+		    }
+
+		    const res = await fetch('/api/v1/checkout', {
+		        method: 'POST',
+		        headers: {
+		            'Content-Type': 'application/json',
+		            'x-csrf-token': csrfToken
+		        },
+		        body: JSON.stringify({
+		            items: cart,
+		            total_harga: total,
+		            ket_bayar: ketBayar,
+		            bayar: bayar,
+		            kembali: kembali
+		        })
+		    });
+
+		    const data = await res.json();
+		    if (data.success) {
+		        // Otomatis Buka Window Cetak Struk
+		        window.open(`/kasir/print/${data.transactionId}`, '_blank', 'width=450,height=650');
+		        clearCart();
+		    } else {
+		        alert('Gagal memproses transaksi: ' + data.message);
+		    }
+		}
+    </script>
+</body>
+</html>

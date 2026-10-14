@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+        
+        <h2 class="text-2xl font-bold mb-1 text-gray-800 text-center flex items-center justify-center gap-2">
+            <span>📷</span> Kamera & Geotag Foto
+        </h2>
+        <p class="text-xs text-gray-500 mb-6 text-center">Ambil foto dengan stempel koordinat lokasi dan waktu real-time.</p>
+
+        <!-- Form Geotag -->
+        <form id="geotagForm" class="space-y-5">
+            <input type="hidden" name="_csrf" id="csrfToken" value="<%= csrfToken %>">
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+            <input type="text" id="customNote" name="custom_note" placeholder="Misal: Catatan Dinas / Nama Toko" 
+    class="w-full border p-2 rounded-lg text-sm mb-3">
+
+            <!-- 1. BAGIAN STATUS & TOMBOL GPS -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <!-- Tombol Kembali di Atas -->
+                    <div class="mb-4">
+                        <a href="/" class="text-xs text-blue-600 hover:underline font-semibold flex items-center gap-1">
+                            ⬅️ Kembali ke RumahTools
+                        </a>
+                    </div>
+                    <span class="font-semibold text-gray-700 text-sm flex items-center gap-1">
+                        📍 Lokasi GPS
+                    </span>
+                    <button type="button" id="btnRefreshGps" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shadow-sm">
+                        🔄 Dapatkan Lokasi
+                    </button>
+                </div>
+                <div id="gpsStatus" class="text-xs text-blue-800 bg-white p-2.5 rounded-lg border border-blue-100 font-mono">
+                    Klik tombol "Dapatkan Lokasi" atau izinkan akses lokasi browser.
+                </div>
+            </div>
+
+            <!-- 2. BAGIAN AKSI KAMERA / UNGGAH FOTO -->
+            <div class="space-y-3">
+                <label class="block font-semibold text-gray-700 text-sm">Pilih Sumber Foto:</label>
+                
+                <div class="grid grid-cols-2 gap-3"> 
+                    <!-- Tombol Buka Kamera Live (Memicu Popup) -->
+                    <button type="button" id="btnStartCamera"
+                        class="w-full flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-400 bg-blue-50 hover:bg-blue-100 rounded-xl transition cursor-pointer text-blue-700">
+                        <span class="text-2xl mb-1">📷</span>
+                        <span class="text-xs font-bold">Gunakan Kamera Live</span>
+                        <span class="text-[10px] text-gray-500">(Mendukung Kamera Depan & Belakang)</span>
+                    </button>
+
+                    <!-- Tombol Upload File / Kamera HP Bawaan -->
+                    <label for="photoInput"
+                        class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 rounded-xl transition cursor-pointer text-gray-700">
+                        <span class="text-2xl mb-1">📁</span>
+                        <span class="text-xs font-bold">Pilih File / Galeri</span>
+                        <span class="text-[10px] text-gray-500">(Upload Gambar)</span>
+                        <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- AREA PRATINJAU (PREVIEW) & INFORMASI -->
+            <div id="previewContainer" class="hidden space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200 text-center">
+                <h3 class="font-bold text-gray-700 text-sm">Pratinjau Hasil Foto Geotag</h3>
+                
+                <!-- Gambar Hasil -->
+                <img id="previewImage" src="" alt="Pratinjau Geotag" class="max-w-full h-auto rounded-lg mx-auto border" />
+                
+                <!-- Kotak Informasi Teks Geotag -->
+                <div id="infoBox" class="bg-black text-white p-3 rounded-lg text-left font-mono text-xs space-y-1">
+                    <p id="infoTime" class="text-white"></p>
+                    <p id="infoCoords" class="text-yellow-400"></p>
+                    <p id="infoAddress" class="text-gray-300"></p>
+                    <p id="infoNote" class="text-teal-300 font-bold"></p>
+                </div>
+            
+                <div>
+                    <a id="downloadBtn" href="#" download="geotag_hasil.jpg" class="inline-block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition text-center">
+                        📥 Klik Unduh Foto Geotag
+                    </a>
+                </div>
+            </div>
+
+            <!-- TOMBOL PROSES GEOTAG -->
+            <button type="submit" id="submitBtn" disabled
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md text-sm flex items-center justify-center gap-2">
+                🏷️ Proses Foto Geotag
+            </button>
+        </form>
+        <!-- TOMBOL KEMBALI KE BERANDA -->
+        <div class="mt-4">
+            <a href="/" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2 text-center block">
+                ⬅️ Kembali ke Beranda
+            </a>
+        </div>
+
+        <div id="loading" class="hidden mt-4 text-center text-blue-600 text-xs font-semibold animate-pulse">
+            ⏳ Sedang memproses lokasi & stempel gambar...
+        </div>
+    </div>
+
+    <!-- CANVAS TERSEMBUNYI -->
+    <canvas id="webcamCanvas" class="hidden"></canvas> 
+    <!-- MODAL POPUP KAMERA (RESPONSIF UNTUK PORTRAIT & LANDSCAPE) -->
+    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-0 md:p-4">
+        <div class="relative bg-black w-full h-full md:h-[85vh] md:w-[70%] md:max-w-2xl md:rounded-2xl overflow-hidden flex flex-col shadow-2xl border border-gray-800">
+            
+            <!-- Header Popup (Flex-shrink 0 agar tidak ikut tertekan) -->
+            <div class="flex-none p-3 md:p-4 bg-black/90 text-white flex items-center justify-between border-b border-gray-800 z-10">
+                <span class="font-bold text-sm flex items-center gap-2">📷 Tangkap Kamera Geotag</span>
+                <button type="button" id="btnCloseModal" class="bg-gray-800 hover:bg-gray-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold transition">
+                    ✕
+                </button>
+            </div>
+    
+            <!-- Area Video Live Camera (flex-1 dan min-h-0 agar elastis menyesuaikan orientasi portrait/landscape) -->
+            <div class="flex-1 min-h-0 bg-gray-950 flex items-center justify-center overflow-hidden relative">
+                <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            </div>
+    
+            <!-- Footer / Tombol Ambil Gambar & Switch Kamera (Flex-shrink 0 agar selalu muncul di bawah) -->
+            <div class="flex-none p-3 md:p-4 bg-black/90 flex items-center justify-around gap-4 border-t border-gray-800 z-10">
+                <button type="button" id="btnSwitchCamera" class="bg-gray-800 hover:bg-gray-700 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center gap-2">
+                    🔄 Ganti Kamera
+                </button>
+    
+                <button type="button" id="btnCaptureWebcam" 
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-lg">
+                    📸 Ambil Foto Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btnRefreshGps = document.getElementById('btnRefreshGps');
+        const gpsStatus = document.getElementById('gpsStatus');
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+
+        const photoInput = document.getElementById('photoInput');
+        const btnStartCamera = document.getElementById('btnStartCamera');
+        const cameraModal = document.getElementById('cameraModal');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const webcamVideo = document.getElementById('webcamVideo');
+        const btnCaptureWebcam = document.getElementById('btnCaptureWebcam');
+        const btnSwitchCamera = document.getElementById('btnSwitchCamera');
+        const webcamCanvas = document.getElementById('webcamCanvas');
+
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        let selectedFileBuffer = null;
+        let currentStream = null;
+        let useFrontCamera = false; // Default kamera belakang (environment)
+
+        // 1. GPS LOGIC
+        function getGPSLocation() {
+            gpsStatus.innerText = "⏳ Sedang mengambil koordinat GPS...";
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        latInput.value = lat;
+                        lngInput.value = lng;
+
+                        gpsStatus.innerHTML = `✅ <b>Lokasi Ditemukan!</b><br>Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}`;
+                        checkFormReady();
+                    },
+                    (error) => {
+                        let errMsg = "Gagal mengambil lokasi.";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            errMsg = "❌ Izin lokasi ditolak. Periksa pengaturan izin browser.";
+                        }
+                        gpsStatus.innerHTML = `<span class="text-red-600 font-semibold">${errMsg}</span>`;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                gpsStatus.innerText = "❌ Browser Anda tidak mendukung Geolocation.";
+            }
+        }
+
+        btnRefreshGps.addEventListener('click', getGPSLocation);
+        getGPSLocation(); 
+
+        // Fungsi Membuka Kamera & Menampilkan Modal
+        async function openCamera() {
+            cameraModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            await startStream();
+        }
+
+        async function startStream() {
+            try {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: { 
+                        facingMode: useFrontCamera ? "user" : "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }, 
+                    audio: false 
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                webcamVideo.srcObject = currentStream;
+                await webcamVideo.play().catch(e => console.log("Auto-play dicegah browser:", e));
+                
+            } catch (err) {
+                console.error("Error akses kamera:", err);
+                alert("Tidak dapat mengakses kamera: " + err.message + "\nPastikan Anda telah memberikan izin akses kamera pada browser.");
+                closeCamera();
+            }
+        }
+
+        // Fungsi Menutup Kamera & Modal
+        function closeCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            cameraModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Event Trigger Buka & Tutup
+        btnStartCamera.addEventListener('click', openCamera);
+        btnCloseModal.addEventListener('click', closeCamera);
+
+        // Tombol Ganti Kamera (Depan / Belakang)
+        btnSwitchCamera.addEventListener('click', () => {
+            useFrontCamera = !useFrontCamera;
+            startStream();
+        });
+
+        // Ambil Gambar dari Stream Video Popup
+        btnCaptureWebcam.addEventListener('click', () => {
+            const context = webcamCanvas.getContext('2d');
+            webcamCanvas.width = webcamVideo.videoWidth || 640;
+            webcamCanvas.height = webcamVideo.videoHeight || 480;
+            
+            context.drawImage(webcamVideo, 0, 0, webcamCanvas.width, webcamCanvas.height);
+            
+            webcamCanvas.toBlob((blob) => {
+                selectedFileBuffer = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                
+                // Set pratinjau lokal sementara
+                previewImage.src = URL.createObjectURL(blob);
+                
+                closeCamera();
+                checkFormReady();
+            }, 'image/jpeg', 0.9);
+        });
+
+        // 3. FILE INPUT LOGIC
+        photoInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                selectedFileBuffer = e.target.files[0];
+                checkFormReady();
+            }
+        });
+
+        function checkFormReady() {
+            if (latInput.value && lngInput.value && selectedFileBuffer) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // 4. SUBMIT FORM KE BACKEND (Sistem Preview & Canvas Render Teks di Tengah Barcode)
+        document.getElementById('geotagForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const csrfToken = document.getElementById('csrfToken').value;
+            const loading = document.getElementById('loading');
+
+            const formData = new FormData();
+            formData.append('photo', selectedFileBuffer);
+            formData.append('latitude', latInput.value);
+            formData.append('longitude', lngInput.value);
+            formData.append('custom_note', document.getElementById('customNote').value);
+
+            submitBtn.disabled = true;
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/v1/tools/process-geotag', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Gagal memproses foto.');
+                }
+
+                // 1. Tampilkan teks informasi di kotak preview HTML bawah
+                document.getElementById('infoTime').innerText = `📅 Waktu: ${result.info.time}`;
+                document.getElementById('infoCoords').innerText = `📍 Koordinat: ${result.info.coords}`;
+                document.getElementById('infoAddress').innerText = `🏠 Lokasi: ${result.info.address}`;
+                document.getElementById('infoNote').innerText = `🌐 Info: ${result.info.note}`;
+
+                // 2. PROSES CANVAS: Cetak Teks Langsung di Antara Barcode dengan Latar Belakang Transparan
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = result.image;
+                
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    ctx.drawImage(img, 0, 0);
+
+                    const boxHeight = Math.round(canvas.height * 0.22);
+                    const qrSize = Math.round(boxHeight * 0.82);
+                    const startY = canvas.height - boxHeight;
+
+                    const leftMargin = qrSize + 35; 
+                    const rightBoundary = canvas.width - qrSize - 35; 
+                    const textBlockWidth = rightBoundary - leftMargin;
+
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; 
+                    ctx.fillRect(leftMargin, startY + 10, textBlockWidth, boxHeight - 20);
+
+                    const fontSize = Math.max(14, Math.round(canvas.width * 0.016));
+                    const lineSpacing = fontSize + 6;
+                    let currentY = startY + 25 + (fontSize * 0.8);
+
+                    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillText(`Waktu: ${result.info.time}`, leftMargin + 15, currentY);
+
+                    currentY += lineSpacing;
+                    ctx.fillStyle = "#FFD700";
+                    ctx.fillText(`Koordinat: ${result.info.coords}`, leftMargin + 15, currentY);
+
+                    currentY += lineSpacing;
+                    ctx.fillStyle = "#E0E0E0";
+                    ctx.font = `${fontSize - 1}px Arial, sans-serif`;
+                    
+                    let displayAddress = result.info.address;
+                    const maxChars = Math.floor(textBlockWidth / (fontSize * 0.5));
+                    if (displayAddress.length > maxChars) {
+                        displayAddress = displayAddress.substring(0, maxChars) + '...';
+                    }
+                    ctx.fillText(`Lokasi: ${displayAddress}`, leftMargin + 15, currentY);
+
+                    currentY += lineSpacing;
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; 
+                    ctx.fillRect(leftMargin, startY + 10, textBlockWidth, boxHeight - 20);
+                    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                    ctx.fillText(`Info: ${result.info.note}`, leftMargin + 15, currentY);
+
+                    const finalDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+                    previewImage.src = finalDataUrl;
+
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    downloadBtn.href = finalDataUrl;
+                    downloadBtn.download = `geotag_${Date.now()}.jpg`;
+
+                    previewContainer.classList.remove('hidden');
+                    previewContainer.scrollIntoView({ behavior: 'smooth' });
+                };
+
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                submitBtn.disabled = false;
+                loading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

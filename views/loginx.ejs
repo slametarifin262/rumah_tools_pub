@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %> | Rumah Tools</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <% if (typeof recaptchaSiteKey !== 'undefined' && recaptchaSiteKey) { %>
+    <script src="https://www.google.com/recaptcha/api.js?render=<%= recaptchaSiteKey %>"></script>
+    <% } %>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 border border-gray-100">
+        
+        <!-- Sisi Kiri: Branding & Info Banner -->
+        <div class="bg-slate-900 p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden hidden md:flex">
+            <!-- Decorative Accent Circles -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-600 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-600 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+
+            <!-- Top Logo Header -->
+            <div class="relative z-10">
+                <a href="/" class="flex items-center space-x-3 text-white text-xl font-bold tracking-tight">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-wrench text-white"></i>
+                    </div>
+                    <span>Rumah Tools</span>
+                </a>
+            </div>
+
+            <!-- Middle Text Content -->
+            <div class="relative z-10 my-auto py-8">
+                <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full uppercase tracking-wider inline-block mb-4">
+                    Portal Manajemen
+                </span>
+                <h2 class="text-3xl font-bold leading-tight text-white mb-3">
+                    Kelola Semua Layanan Digital Anda
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Masuk ke dasbor utama untuk mengelola kredensial API Key, memantau riwayat pemrosesan dokumen, dan mengakses fitur eksklusif.
+                </p>
+            </div>
+
+            <!-- Bottom Footer Info -->
+            <div class="relative z-10 text-xs text-slate-500 flex items-center justify-between border-t border-slate-800 pt-4">
+                <span>&copy; <%= new Date().getFullYear() %> Rumah Tools</span>
+                <a href="/docs/api" class="text-slate-400 hover:text-white transition">Dokumentasi API</a>
+            </div>
+        </div>
+
+        <!-- Sisi Kanan: Form Login -->
+        <div class="p-8 sm:p-12 flex flex-col justify-center">
+            
+            <!-- Mobile Brand Logo -->
+            <div class="flex items-center space-x-3 mb-8 md:hidden">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+                <span class="text-xl font-bold text-gray-900">Rumah Tools</span>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-gray-900 tracking-tight">Selamat Datang Kembali</h3>
+                <p class="text-sm text-gray-500 mt-1">Silakan masukkan akun Anda untuk melanjutkan</p>
+            </div>
+
+            <!-- Alert Notifikasi Error -->
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="mb-5 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg flex items-start space-x-3 shadow-sm" role="alert">
+                    <i class="fa-solid fa-circle-exclamation text-red-500 text-base mt-0.5"></i>
+                    <div>
+                        <span class="font-semibold block">Gagal Masuk</span>
+                        <p class="text-xs text-red-600 mt-0.5"><%= error %></p>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Form Utama -->
+            <form action="/login" method="POST" class="space-y-5" id="loginForm">
+                <!-- Hidden Input CSRF Token -->
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <!-- Hidden Input CSRF Token -->
+                <!-- <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"> -->
+
+                <!-- Hidden Input token reCAPTCHA v3, diisi otomatis oleh script sebelum submit -->
+                <input type="hidden" name="recaptchaToken" id="recaptchaToken">
+
+                <!-- Input Email -->
+                <div>
+                    <label for="email" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+                        Alamat Email
+                    </label>
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="email" 
+                            required 
+                            placeholder="nama@domain.com"
+                            class="block w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white focus:border-transparent transition duration-150"
+                        >
+                    </div>
+                </div>
+
+                <!-- Input Password dengan Toggle Eye -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="password" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Kata Sandi
+                        </label>
+                    </div>
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password" 
+                            required 
+                            placeholder="••••••••"
+                            class="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white focus:border-transparent transition duration-150"
+                        >
+                        <button 
+                            type="button" 
+                            id="togglePassword"
+                            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            aria-label="Tampilkan Password"
+                        >
+                            <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tombol Submit -->
+                <button 
+                    type="submit" 
+                    class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-600/25 transition duration-150 ease-in-out flex items-center justify-center space-x-2"
+                >
+                    <span>Masuk ke Akun</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+
+            </form>
+
+            <!-- Bottom Back Link -->
+            <div class="mt-8 text-center">
+                <a href="/" class="text-xs text-gray-500 hover:text-blue-600 transition inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                    <span>Kembali ke Halaman Utama</span>
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Script Toggle Password -->
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            // Toggle Tipe Input
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Toggle Ikon Eye / Eye-Slash
+            if (type === 'text') {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+
+        // reCAPTCHA v3 — ambil token tepat sebelum submit, bukan saat halaman dibuka
+        // (token v3 hanya berlaku singkat), lalu baru submit form yang sesungguhnya.
+        <% if (typeof recaptchaSiteKey !== 'undefined' && recaptchaSiteKey) { %>
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', function (e) {
+            if (loginForm.dataset.recaptchaDone === 'true') return; // sudah dapat token, lanjutkan submit asli
+            e.preventDefault();
+
+            grecaptcha.ready(function () {
+                grecaptcha.execute('<%= recaptchaSiteKey %>', { action: 'login' }).then(function (token) {
+                    document.getElementById('recaptchaToken').value = token;
+                    loginForm.dataset.recaptchaDone = 'true';
+                    loginForm.submit();
+                }).catch(function () {
+                    // Gagal ambil token (mis. offline dari Google) -> tetap submit,
+                    // server akan menolak kalau RECAPTCHA_SECRET_KEY sudah aktif & tidak ada token valid.
+                    loginForm.dataset.recaptchaDone = 'true';
+                    loginForm.submit();
+                });
+            });
+        });
+        <% } %>
+    </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Repositori Dokumentasi Aplikasi</title>
+  
+  <!-- Script pencegah flicker mode sebelum halaman selesai dimuat -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased flex flex-col transition-colors duration-200">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 shrink-0">
+        <div class="bg-blue-600 text-white p-2 rounded-lg shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-none">Portal Repositori</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">Sistem Dokumentasi Aplikasi Terintegrasi</p>
+        </div>
+      </div>
+
+      <!-- Search Bar Input -->
+      <div class="flex-1 max-w-md">
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Cari file atau folder dokumen..." 
+            class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700/60 border border-transparent dark:border-slate-600 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- Actions: Theme Toggle Button -->
+      <div class="flex items-center space-x-3 shrink-0">
+        <button 
+          id="themeToggleBtn" 
+          type="button" 
+          aria-label="Toggle Theme"
+          class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+          <!-- Sun Icon (Dark Mode Active) -->
+          <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <!-- Moon Icon (Light Mode Active) -->
+          <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+          <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full"></span> v2.0
+        </span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
+    
+    <!-- Sidebar Left: Information -->
+    <aside class="lg:col-span-1 space-y-6">
+      <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm transition-colors duration-200">
+        <h2 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Ringkasan Direktori</h2>
+        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+          <li class="flex items-center justify-between">
+            <span>📄 Dokumen Resmi</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">01</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>💻 Source Code</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">02</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>⚙️ Konfigurasi</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">03</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>🗄️ Database</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">04</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>🚀 Versi Aplikasi</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">05</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>⏹️ Berita Terminasi</span>
+            <span class="bg-slate-100 dark:bg-slate-700 text-xs px-2 py-0.5 rounded-full font-medium">06</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-blue-50 dark:bg-blue-950/40 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 text-xs text-blue-800 dark:text-blue-300">
+        <p class="font-semibold mb-1">💡 Pencarian Instan</p>
+        <p class="leading-relaxed">Ketik nama dokumen pada kolom pencarian di atas untuk menyaring struktur folder secara otomatis.</p>
+      </div>
+    </aside>
+
+    <!-- Right Side: Directory Tree -->
+    <main class="lg:col-span-3">
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm overflow-hidden transition-colors duration-200">
+        <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+          <h2 class="font-semibold text-slate-800 dark:text-slate-100">Struktur File & Dokumentasi</h2>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Path Root: <code>/public/docs</code></span>
+        </div>
+
+        <div class="p-4 sm:p-6" id="treeContainer">
+          <% function renderTree(nodes) { %>
+            <ul class="space-y-1 pl-4 border-l-2 border-slate-100 dark:border-slate-700 my-1">
+              <% nodes.forEach(node => { %>
+                <li class="tree-item text-sm" data-name="<%= node.name.toLowerCase() %>">
+                  <% if (node.type === 'folder') { %>
+                    <div class="flex items-center gap-2 py-1.5 px-2.5 rounded-lg text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+                      <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                      </svg>
+                      <span class="node-title"><%= node.name %></span>
+                    </div>
+                    <% if (node.children && node.children.length > 0) { %>
+                      <% renderTree(node.children); %>
+                    <% } %>
+                  <% } else { %>
+                    <div class="flex items-center gap-2 py-1 px-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-blue-50/70 dark:hover:bg-slate-700/60 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group">
+                      <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                      </svg>
+                      <a href="<%= node.path %>" target="_blank" class="node-title truncate group-hover:underline">
+                        <%= node.name %>
+                      </a>
+                    </div>
+                  <% } %>
+                </li>
+              <% }); %>
+            </ul>
+          <% } %>
+
+          <% if (repoStructure && repoStructure.length > 0) { %>
+            <div class="-ml-4">
+              <% renderTree(repoStructure); %>
+            </div>
+          <% } else { %>
+            <div class="text-center py-12">
+              <p class="text-slate-500 dark:text-slate-400 text-sm">Tidak ada file atau folder ditemukan di <code>public/docs</code>.</p>
+            </div>
+          <% } %>
+
+          <!-- Container jika hasil pencarian nihil -->
+          <div id="noResults" class="hidden text-center py-12">
+            <svg class="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Dokumen tidak ditemukan.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 mt-auto transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 dark:text-slate-500">
+      &copy; <%= new Date().getFullYear() %> Repositori Dokumentasi Aplikasi. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Script Interaktif (Theme Toggle & Live Search) -->
+  <script>
+    // 1. Logika Dynamic Theme Toggle
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    
+    themeToggleBtn.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    // 2. Logika Live Search Filter
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', (e) => {
+      const keyword = e.target.value.toLowerCase().trim();
+      const allTreeItems = document.querySelectorAll('.tree-item');
+      let hasVisibleItem = false;
+
+      if (keyword === '') {
+        // Reset tampilan jika kolom pencarian kosong
+        allTreeItems.forEach(item => item.classList.remove('hidden'));
+        noResults.classList.add('hidden');
+        return;
+      }
+
+      // Sembunyikan semua item terlebih dahulu
+      allTreeItems.forEach(item => item.classList.add('hidden'));
+
+      // Filter berdasarkan nama node
+      allTreeItems.forEach(item => {
+        const name = item.getAttribute('data-name');
+        if (name && name.includes(keyword)) {
+          hasVisibleItem = true;
+          item.classList.remove('hidden');
+
+          // Tampilkan parent folder agar strukturhirarki tetap terjaga
+          let parent = item.parentElement;
+          while (parent && !parent.id?.includes('treeContainer')) {
+            if (parent.tagName === 'UL' || parent.classList.contains('tree-item')) {
+              parent.classList.remove('hidden');
+            }
+            parent = parent.parentElement;
+          }
+        }
+      });
+
+      // Tampilkan notifikasi jika tidak ditemukan
+      if (hasVisibleItem) {
+        noResults.classList.add('hidden');
+      } else {
+        noResults.classList.remove('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

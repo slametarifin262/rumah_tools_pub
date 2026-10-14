@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        #wheelContainer {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        #pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 30px solid #ef4444;
+            z-index: 20;
+            filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.3));
+        }
+        .slot-digit {
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 py-4 px-6 mb-6">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 text-slate-700 hover:text-blue-600 font-medium text-sm transition">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+            </a>
+            <h1 class="font-bold text-slate-800 text-lg">Papan Undian Custom</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 w-full flex-grow">
+        
+        <!-- MODE SELECTOR TABS -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-200/80 p-1.5 rounded-2xl flex gap-2 shadow-inner max-w-md w-full">
+                <button id="btnTabWheel" onclick="switchMode('wheel')" 
+                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-blue-600 shadow-sm">
+                    <i class="fa-solid fa-arrows-spin text-sm"></i> Roda Berputar (Spin)
+                </button>
+                <button id="btnTabSlot" onclick="switchMode('slot')" 
+                    class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-file-csv text-sm"></i> Acak Kupon / Rekening (CSV)
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= MODE 1: RODA BERPUTAR (WHEEL) ================= -->
+        <div id="modeWheel" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- KOLOM KIRI: Input Nama -->
+            <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base mb-1">Daftar Peserta / Opsi</h2>
+                    <p class="text-xs text-slate-500">Masukkan satu nama per baris.</p>
+                </div>
+
+                <textarea id="itemsInput" rows="7" 
+                    class="w-full p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    placeholder="Contoh:&#10;Ahmad Fauzi&#10;Budi Santoso&#10;Citra Lestari&#10;Dewi Rahma&#10;Eko Prasetyo">Ahmad Fauzi
+Budi Santoso
+Citra Lestari
+Dewi Rahma
+Eko Prasetyo
+Fajar Hidayat
+Gita Gutawa</textarea>
+
+                <div class="flex items-center justify-between text-xs text-slate-600">
+                    <span>Total Opsi: <strong id="totalCount" class="text-blue-600">0</strong></span>
+                    <button onclick="shuffleInput()" class="text-slate-500 hover:text-blue-600 font-medium">
+                        <i class="fa-solid fa-shuffle mr-1"></i> Acak Urutan
+                    </button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 space-y-3">
+                    <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="autoRemoveOption" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        Hapus otomatis nama yang menang dari daftar
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="soundEffectOption" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        Efek Suara Putaran
+                    </label>
+                </div>
+
+                <!-- Riwayat Pemenang Wheel -->
+                <div class="pt-3 border-t border-slate-100">
+                    <h3 class="font-bold text-xs text-slate-700 mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-trophy text-amber-500 mr-1"></i> Riwayat Pemenang</span>
+                        <button onclick="clearHistory('wheel')" class="text-[11px] text-red-500 hover:underline">Hapus</button>
+                    </h3>
+                    <ul id="historyListWheel" class="text-xs space-y-1 max-h-36 overflow-y-auto bg-slate-50 p-2 rounded-lg border border-slate-200/60">
+                        <li class="text-slate-400 italic text-center py-2">Belum ada pemenang</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- KOLOM KANAN: Canvas Roda -->
+            <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-center">
+                <div id="wheelContainer" class="my-4">
+                    <div id="pointer"></div>
+                    <canvas id="wheelCanvas" width="400" height="400" class="w-full h-auto cursor-pointer"></canvas>
+                </div>
+
+                <div class="mt-4 w-full max-w-xs text-center space-y-3">
+                    <button id="spinBtn" onclick="spinWheel()" 
+                        class="w-full py-3.5 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> PUTAR RODA
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= MODE 2: DIGITAL ROLL / CSV ================= -->
+        <div id="modeSlot" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start hidden">
+            
+            <!-- KOLOM KIRI: Upload CSV & Form -->
+            <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base mb-1">Import Data Undian (CSV / TXT)</h2>
+                    <p class="text-xs text-slate-500">Cocok untuk No. Kupon, No. Rekening, atau ID Peserta.</p>
+                </div>
+
+                <!-- File Upload Box -->
+                <div class="border-2 border-dashed border-slate-200 hover:border-blue-500 p-4 rounded-xl text-center cursor-pointer transition bg-slate-50/50" onclick="document.getElementById('csvFileInput').click()">
+                    <i class="fa-solid fa-file-csv text-2xl text-blue-500 mb-1"></i>
+                    <p class="text-xs font-semibold text-slate-700">Klik untuk unggah file CSV / TXT</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Format: Nomor Kupon / Rekening, Nama</p>
+                    <input type="file" id="csvFileInput" accept=".csv, .txt" class="hidden" onchange="handleCSVUpload(event)">
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-2 text-[11px] text-slate-400">Atau ketik manual di bawah</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <textarea id="slotItemsInput" rows="5" 
+                    class="w-full p-3 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition font-mono"
+                    placeholder="Format: Nomor, Nama&#10;Contoh:&#10;KP-001, Ahmad Fauzi&#10;KP-002, Budi Santoso&#10;KP-003, Citra Lestari">1029384756, Budi Santoso (Cabang Semarang)
+1029384757, Siti Rahmawati (Cabang Solo)
+1029384758, Agus Setiawan (Cabang Cilacap)
+1029384759, Dewi Handayani (Cabang Kudus)
+1029384760, Eko Prasetyo (Cabang Magelang)</textarea>
+
+                <div class="flex items-center justify-between text-xs text-slate-600">
+                    <span>Total Kupon: <strong id="slotTotalCount" class="text-blue-600">0</strong></span>
+                    <button onclick="shuffleSlotInput()" class="text-slate-500 hover:text-blue-600 font-medium">
+                        <i class="fa-solid fa-shuffle mr-1"></i> Acak Urutan
+                    </button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 space-y-3">
+                    <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="autoRemoveSlotOption" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        Hapus pemenang dari daftar setelah menang
+                    </label>
+                </div>
+
+                <!-- Riwayat Pemenang Slot -->
+                <div class="pt-3 border-t border-slate-100">
+                    <h3 class="font-bold text-xs text-slate-700 mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-trophy text-amber-500 mr-1"></i> Riwayat Pemenang Kupon</span>
+                        <button onclick="clearHistory('slot')" class="text-[11px] text-red-500 hover:underline">Hapus</button>
+                    </h3>
+                    <ul id="historyListSlot" class="text-xs space-y-1 max-h-36 overflow-y-auto bg-slate-50 p-2 rounded-lg border border-slate-200/60">
+                        <li class="text-slate-400 italic text-center py-2">Belum ada pemenang</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- KOLOM KANAN: Papan Digital Roll / Counter -->
+            <div class="lg:col-span-7 bg-slate-900 p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center border border-slate-800 text-white min-h-[420px]">
+                
+                <div class="text-center mb-6">
+                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold rounded-full uppercase tracking-wider">
+                        Undian Acak Digital
+                    </span>
+                    <h3 id="slotDisplaySubtitle" class="text-slate-400 text-xs mt-2">Tekan 'Undi Sekarang' untuk memulai pengocokan</h3>
+                </div>
+
+                <!-- Layar Digital Slot -->
+                <div class="w-full max-w-lg bg-slate-950 p-6 rounded-2xl border-2 border-blue-500/40 shadow-[0_0_30px_rgba(59,130,246,0.15)] my-4 text-center">
+                    <div id="slotDisplayNumber" class="text-3xl md:text-5xl font-extrabold text-blue-400 tracking-wider slot-digit min-h-[60px] flex items-center justify-center">
+                        ------
+                    </div>
+                    <div id="slotDisplayName" class="text-sm md:text-base font-semibold text-slate-300 mt-3 pt-3 border-t border-slate-800 min-h-[30px]">
+                        [ Nama Pemilik Rekening / Kupon ]
+                    </div>
+                </div>
+
+                <div class="mt-6 w-full max-w-xs text-center">
+                    <button id="slotBtn" onclick="startSlotRoll()" 
+                        class="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-base rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i> UNDI SEKARANG
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal Pemenang Universal -->
+    <div id="winnerModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl transform transition-all scale-95 opacity-0" id="modalContent">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Selamat Kepada</h2>
+            <h1 id="winnerName" class="text-2xl md:text-3xl font-extrabold text-slate-900 my-2 text-blue-600">Nama Pemenang</h1>
+            <p id="winnerDetail" class="text-xs text-slate-500 mb-6">Detail Kupon / Nomor</p>
+
+            <div class="flex gap-3">
+                <button onclick="closeWinnerModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-10">
+        Rumah Tools &copy; 2026 - Papan Undian Custom & Digital Roll
+    </footer>
+
+<script>
+    // ================= GLOBAL & TAB SWITCHING =================
+    let currentMode = 'wheel';
+
+    function switchMode(mode) {
+        currentMode = mode;
+        const btnWheel = document.getElementById('btnTabWheel');
+        const btnSlot = document.getElementById('btnTabSlot');
+        const modeWheel = document.getElementById('modeWheel');
+        const modeSlot = document.getElementById('modeSlot');
+
+        if (mode === 'wheel') {
+            btnWheel.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-blue-600 shadow-sm';
+            btnSlot.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900';
+            modeWheel.classList.remove('hidden');
+            modeSlot.classList.add('hidden');
+            drawWheel();
+        } else {
+            btnSlot.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-blue-600 shadow-sm';
+            btnWheel.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900';
+            modeSlot.classList.remove('hidden');
+            modeWheel.classList.add('hidden');
+            parseSlotItems();
+        }
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeepSound(freq = 600, duration = 0.04) {
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e){}
+    }
+
+    // ================= MODE 1: RODA SPIN (WHEEL) =================
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316'];
+    let items = [];
+    let startAngle = 0;
+    let spinTimeout = null;
+    let spinArcStart = 10;
+    let spinTime = 0;
+    let spinTimeTotal = 0;
+    let isSpinning = false;
+    let lastSegmentIndex = -1;
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function getItems() {
+        const text = document.getElementById('itemsInput').value;
+        items = text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+        document.getElementById('totalCount').innerText = items.length;
+        drawWheel();
+    }
+
+    function drawWheel() {
+        if (!ctx) return;
+        const numOptions = items.length;
+        ctx.clearRect(0, 0, 400, 400);
+
+        if (numOptions === 0) {
+            ctx.fillStyle = "#CBD5E1";
+            ctx.beginPath();
+            ctx.arc(200, 200, 180, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#64748B";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Masukkan nama peserta", 200, 205);
+            return;
+        }
+
+        const arc = Math.PI / (numOptions / 2);
+        for (let i = 0; i < numOptions; i++) {
+            const angle = startAngle + i * arc;
+            ctx.fillStyle = colors[i % colors.length];
+
+            ctx.beginPath();
+            ctx.arc(200, 200, 180, angle, angle + arc, false);
+            ctx.arc(200, 200, 35, angle + arc, angle, true);
+            ctx.fill();
+
+            ctx.save();
+            ctx.fillStyle = "white";
+            ctx.translate(200 + Math.cos(angle + arc / 2) * 135, 200 + Math.sin(angle + arc / 2) * 135);
+            ctx.rotate(angle + arc / 2 + Math.PI / 2);
+            ctx.font = "bold 13px sans-serif";
+            let text = items[i];
+            if (text.length > 15) text = text.substring(0, 13) + '...';
+            ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+            ctx.restore();
+        }
+
+        ctx.fillStyle = "#1E293B";
+        ctx.beginPath();
+        ctx.arc(200, 200, 35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("SPIN", 200, 204);
+    }
+
+    function spinWheel() {
+        if (isSpinning) return;
+        if (items.length < 2) {
+            alert('Minimal masukkan 2 nama peserta!');
+            return;
+        }
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+        spinTime = 0;
+        spinTimeTotal = Math.random() * 3000 + 4000;
+        spinArcStart = Math.random() * 10 + 10;
+        rotateWheel();
+    }
+
+    function rotateWheel() {
+        spinTime += 30;
+        if (spinTime >= spinTimeTotal) {
+            stopRotateWheel();
+            return;
+        }
+        const spinAngle = spinArcStart - ((spinTime/spinTimeTotal)*(spinTime/spinTimeTotal)*spinArcStart);
+        startAngle += (spinAngle * Math.PI / 180);
+        drawWheel();
+
+        const numOptions = items.length;
+        const arc = Math.PI / (numOptions / 2);
+        const currentSegment = Math.floor((2 * Math.PI - (startAngle % (2 * Math.PI))) / arc) % numOptions;
+        if (currentSegment !== lastSegmentIndex) {
+            if (document.getElementById('soundEffectOption').checked) playBeepSound(600, 0.03);
+            lastSegmentIndex = currentSegment;
+        }
+        spinTimeout = setTimeout(rotateWheel, 30);
+    }
+
+    function stopRotateWheel() {
+        clearTimeout(spinTimeout);
+        isSpinning = false;
+        document.getElementById('spinBtn').disabled = false;
+
+        const numOptions = items.length;
+        const arc = Math.PI / (numOptions / 2);
+        const degrees = startAngle * 180 / Math.PI + 90;
+        const index = Math.floor((360 - (degrees % 360)) / (arc * 180 / Math.PI)) % numOptions;
+        
+        const winner = items[index];
+        showWinnerModal(winner, "Terpilih melalui Roda Spin");
+        addHistory('wheel', winner);
+
+        if (document.getElementById('autoRemoveOption').checked) {
+            items.splice(index, 1);
+            document.getElementById('itemsInput').value = items.join('\n');
+            getItems();
+        }
+    }
+
+    // ================= MODE 2: DIGITAL ROLL / CSV =================
+    let slotData = []; // [{code: '1029384756', name: 'Budi'}]
+    let isSlotRolling = false;
+
+    function handleCSVUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const text = evt.target.result;
+            const lines = text.split('\n');
+            let formattedLines = [];
+
+            lines.forEach(line => {
+                const cleaned = line.trim();
+                if (cleaned) formattedLines.push(cleaned);
+            });
+
+            document.getElementById('slotItemsInput').value = formattedLines.join('\n');
+            parseSlotItems();
+            alert(`Berhasil mengunggah ${formattedLines.length} baris data dari file CSV!`);
+        };
+        reader.readAsText(file);
+    }
+
+    function parseSlotItems() {
+        const raw = document.getElementById('slotItemsInput').value;
+        const lines = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+        
+        slotData = lines.map(line => {
+            const parts = line.split(',');
+            if (parts.length > 1) {
+                return { code: parts[0].trim(), name: parts.slice(1).join(',').trim() };
+            } else {
+                return { code: line.trim(), name: 'Peserta' };
+            }
+        });
+
+        document.getElementById('slotTotalCount').innerText = slotData.length;
+    }
+
+    function startSlotRoll() {
+        if (isSlotRolling) return;
+        if (slotData.length < 1) {
+            alert('Masukkan atau upload data kupon/rekening terlebih dahulu!');
+            return;
+        }
+
+        isSlotRolling = true;
+        document.getElementById('slotBtn').disabled = true;
+        document.getElementById('slotBtn').classList.add('opacity-50');
+
+        let duration = 3500; // 3.5 Detik
+        let startTime = Date.now();
+
+        document.getElementById('slotDisplaySubtitle').innerText = "Mengacak nomor & nama...";
+
+        const rollInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const randomIndex = Math.floor(Math.random() * slotData.length);
+            const item = slotData[randomIndex];
+
+            document.getElementById('slotDisplayNumber').innerText = item.code;
+            document.getElementById('slotDisplayName').innerText = item.name;
+            playBeepSound(800, 0.02);
+
+            if (elapsed >= duration) {
+                clearInterval(rollInterval);
+                finishSlotRoll();
+            }
+        }, 50);
+    }
+
+    function finishSlotRoll() {
+        isSlotRolling = false;
+        document.getElementById('slotBtn').disabled = false;
+        document.getElementById('slotBtn').classList.remove('opacity-50');
+
+        const winnerIndex = Math.floor(Math.random() * slotData.length);
+        const winner = slotData[winnerIndex];
+
+        document.getElementById('slotDisplayNumber').innerText = winner.code;
+        document.getElementById('slotDisplayName').innerText = winner.name;
+        document.getElementById('slotDisplaySubtitle').innerText = "Pengundian Selesai!";
+
+        showWinnerModal(winner.name, `No. Kupon/Rekening: ${winner.code}`);
+        addHistory('slot', `${winner.code} - ${winner.name}`);
+
+        if (document.getElementById('autoRemoveSlotOption').checked) {
+            slotData.splice(winnerIndex, 1);
+            const updatedLines = slotData.map(d => `${d.code}, ${d.name}`);
+            document.getElementById('slotItemsInput').value = updatedLines.join('\n');
+            parseSlotItems();
+        }
+    }
+
+    // ================= MODAL & HISTORY UTILS =================
+    function showWinnerModal(title, detail) {
+        document.getElementById('winnerName').innerText = title;
+        document.getElementById('winnerDetail').innerText = detail;
+
+        const modal = document.getElementById('winnerModal');
+        const content = document.getElementById('modalContent');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }
+
+    function closeWinnerModal() {
+        const modal = document.getElementById('winnerModal');
+        const content = document.getElementById('modalContent');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    function addHistory(type, text) {
+        const list = type === 'wheel' ? document.getElementById('historyListWheel') : document.getElementById('historyListSlot');
+        if (list.children[0]?.innerText.includes('Belum ada pemenang')) list.innerHTML = '';
+
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between font-semibold text-slate-700 bg-white p-2 rounded border border-slate-200';
+        li.innerHTML = `<span><i class="fa-solid fa-trophy text-amber-500 mr-1.5"></i> ${text}</span><span class="text-[10px] text-slate-400">${new Date().toLocaleTimeString('id-ID')}</span>`;
+        list.prepend(li);
+    }
+
+    function clearHistory(type) {
+        const list = type === 'wheel' ? document.getElementById('historyListWheel') : document.getElementById('historyListSlot');
+        list.innerHTML = '<li class="text-slate-400 italic text-center py-2">Belum ada pemenang</li>';
+    }
+
+    function shuffleInput() {
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [items[i], items[j]] = [items[j], items[i]];
+        }
+        document.getElementById('itemsInput').value = items.join('\n');
+        getItems();
+    }
+
+    function shuffleSlotInput() {
+        for (let i = slotData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [slotData[i], slotData[j]] = [slotData[j], slotData[i]];
+        }
+        const updatedLines = slotData.map(d => `${d.code}, ${d.name}`);
+        document.getElementById('slotItemsInput').value = updatedLines.join('\n');
+        parseSlotItems();
+    }
+
+    // Event Listeners
+    document.getElementById('itemsInput').addEventListener('input', getItems);
+    document.getElementById('slotItemsInput').addEventListener('input', parseSlotItems);
+
+    // Initial Load
+    getItems();
+    parseSlotItems();
+</script>
+</body>
+</html>

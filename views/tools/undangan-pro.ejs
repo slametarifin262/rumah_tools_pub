@@ -1,0 +1,191 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>  
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        .font-great-vibes { font-family: 'Great Vibes', cursive; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0.2; }
+        }
+        .falling-element {
+            position: fixed;
+            top: -10vh;
+            user-select: none;
+            pointer-events: none;
+            z-index: 20;
+            animation: fall linear infinite;
+        }
+    </style>
+</head>
+<body class="m-0 p-0 overflow-x-hidden relative">
+
+    <!-- EFEK BUNGA / DAUN JATUH -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-20">
+        <i class="fa-solid fa-spa text-pink-400/40 text-xl falling-element" style="left: 10%; animation-duration: 7s; animation-delay: 0s;"></i>
+        <i class="fa-solid fa-leaf text-amber-500/40 text-lg falling-element" style="left: 30%; animation-duration: 9s; animation-delay: 2s;"></i>
+        <i class="fa-solid fa-spa text-rose-300/40 text-2xl falling-element" style="left: 60%; animation-duration: 6s; animation-delay: 1s;"></i>
+        <i class="fa-solid fa-leaf text-emerald-500/40 text-sm falling-element" style="left: 80%; animation-duration: 8s; animation-delay: 3s;"></i>
+        <i class="fa-solid fa-spa text-amber-300/40 text-xl falling-element" style="left: 90%; animation-duration: 10s; animation-delay: 4s;"></i>
+    </div>
+
+    <!-- AUDIO & OVERLAY (SAMAR-SAMAR 40%) -->
+    <% if (locals.media && locals.media.audio) { %>
+        <audio id="bg-audio" loop>
+            <source src="<%= locals.media.audio %>" type="audio/mp3">
+        </audio>
+
+        <div id="welcome-overlay" class="fixed inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center text-center p-6 text-white backdrop-blur-sm">
+            <h2 class="text-3xl font-great-vibes text-amber-400 mb-2">Pernikahan</h2>
+            <h1 class="text-4xl font-bold font-playfair mb-4"><%= locals.names %></h1>
+            <p class="text-slate-300 text-sm mb-2">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+            <div class="bg-slate-900 border border-slate-800 px-6 py-2 rounded-xl text-amber-300 font-bold text-lg mb-6 shadow-lg">
+                <%= locals.guest_name %>
+            </div>
+            <button onclick="openInvitation()" class="px-8 py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+                <i class="fa-solid fa-envelope-open"></i> Buka Undangan
+            </button>
+        </div>
+    <% } %>
+
+    <!-- WRAPPER UTAMA -->
+    <div class="min-h-screen relative flex flex-col items-center justify-between py-16 px-4 bg-cover bg-center 
+        <% if (locals.layout_style === 'modern') { %> 
+            bg-slate-900 text-slate-100 font-sans 
+        <% } else if (locals.layout_style === 'floral') { %> 
+            bg-pink-950/30 text-rose-100 font-serif 
+        <% } else { %> 
+            bg-stone-950 text-stone-100 font-playfair 
+        <% } %>"
+        style="<%= locals.media && locals.media.background ? `background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('${locals.media.background}');` : '' %>">
+
+        <!-- HEADER -->
+        <div class="text-center max-w-2xl mx-auto space-y-4 z-10">
+            <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold">The Wedding Of</span>
+            <h1 class="text-5xl md:text-6xl font-great-vibes text-amber-300"><%= locals.names %></h1>
+            <p class="text-sm tracking-wide text-slate-300"><%= locals.event_date %></p>
+        </div>
+
+        <!-- OPSI NUANSA ISLAMI -->
+        <% if (locals.invitation_style === 'islami') { %>
+            <div class="text-center my-6 px-4 z-10 max-w-lg">
+                <p class="text-amber-400 font-arabic text-2xl mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+                <p class="text-xs text-slate-300 italic">"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri..." (QS. Ar-Rum: 21)</p>
+            </div>
+        <% } %>
+
+        <!-- DETAIL ACARA -->
+        <div class="max-w-xl w-full bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 my-6 shadow-2xl z-10 space-y-6">
+            <h3 class="text-center font-bold text-amber-400 border-b border-slate-800 pb-3 uppercase tracking-wider text-sm">Informasi Acara</h3>
+            <div class="text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-line text-center">
+                <%= locals.event_details ? locals.event_details : 'Detail acara akan segera diperbarui.' %>
+            </div>
+            <% if (locals.maps_link && locals.maps_link !== '#') { %>
+                <div class="text-center pt-2">
+                    <a href="<%= locals.maps_link %>" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl text-sm transition shadow-lg">
+                        <i class="fa-solid fa-map-location-dot"></i> Buka Lokasi di Google Maps
+                    </a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- GALERI TIMELINE (CENTER, WIDTH 40%, TANPA GARIS, ANIMASI STATISTIK SCROLL) -->
+        <% if (locals.media && locals.media.photos && locals.media.photos.length > 0) { %>
+            <div class="w-full z-10 space-y-16 my-12 flex flex-col items-center">
+                <h3 class="text-center font-bold text-amber-400 uppercase tracking-wider text-sm">Our Love Story</h3>
+                
+                <div class="w-full flex flex-col items-center space-y-16">
+                    <% locals.media.photos.forEach((photo, index) => { 
+                       let captionText = (locals.media.captions && locals.media.captions[index]) ? locals.media.captions[index] : `Momen Bahagia ${index + 1}`;
+                    %>
+                        <div class="timeline-item opacity-0 translate-y-16 scale-95 transition-all duration-1000 ease-out w-11/12 md:w-[40%] text-center space-y-3">
+                            <span class="text-xs font-semibold text-amber-400 uppercase tracking-widest block">
+                                <%= captionText %>
+                            </span>
+                            
+                            <div class="overflow-hidden rounded-2xl border border-slate-800 shadow-2xl bg-slate-900 aspect-[4/3] w-full">
+                                <img src="<%= photo %>" alt="Timeline Foto" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs text-slate-500 z-10 mt-10">
+            &copy; 2026 Rumah Tools - Undangan Digital Eksklusif
+        </footer>
+    </div>
+
+    <!-- TOMBOL SIMPAN / PREVIEW -->
+    <% if (!locals.is_guest) { %>
+        <div class="fixed bottom-6 right-6 z-50 flex gap-3 bg-slate-900/90 backdrop-blur-md p-3 border border-slate-800 rounded-2xl shadow-2xl">
+            <a href="/tools/undangan-digital" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Kembali
+            </a>
+            <form action="/api/undangan/save" method="POST">
+                <input type="hidden" name="names" value="<%= locals.names %>">
+                <input type="hidden" name="event_date" value="<%= locals.raw_date %>">
+                <input type="hidden" name="template_type" value="pro">
+                <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-share-nodes"></i> Simpan & Buat Link
+                </button>
+            </form>
+        </div>
+    <% } %>
+
+    <script>
+    function openInvitation() {
+        const overlay = document.getElementById('welcome-overlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 500);
+        }
+        const audio = document.getElementById('bg-audio');
+        if (audio) {
+            audio.volume = 0.4; // Volume samar-samar 40%
+            audio.play().catch(err => console.log("Gagal memutar audio:", err));
+        }
+    }
+
+    // Animasi Scroll Bolak-Balik (Muncul ke bawah, Hilang ke atas)
+    document.addEventListener("DOMContentLoaded", function() {
+        const observerOptions = { 
+            root: null, 
+            rootMargin: '0px', 
+            threshold: 0.15 
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Ketika elemen masuk layar (scroll ke bawah)
+                    entry.target.classList.remove('opacity-0', 'translate-y-16', 'scale-95');
+                    entry.target.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+                } else {
+                    // Ketika elemen keluar layar (scroll ke atas / lewat)
+                    entry.target.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                    entry.target.classList.add('opacity-0', 'translate-y-16', 'scale-95');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            observer.observe(item);
+        });
+    });
+</script>
+</body>
+</html>
+
+<%- include('../partials/footer') %>

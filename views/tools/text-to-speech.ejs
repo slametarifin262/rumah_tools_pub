@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Text to Speech - Rumah Tools</title>
+    <script src="/assets/js/csrf.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-house-laptop text-lg"></i>
+                </div>
+                <span class="font-extrabold text-xl tracking-tight text-slate-900">Rumah<span class="text-blue-600">Tools</span></span>
+            </a>
+            <a href="/" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-2 bg-slate-100 hover:bg-blue-50 px-3 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Kembali ke Dashboard</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-10 w-full flex-grow">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold mb-3">
+                <i class="fa-solid fa-volume-high"></i> Voice Generator
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Text to Speech Converter</h1>
+            <p class="text-sm text-slate-500 mt-2 max-w-xl mx-auto">Ubah teks atau dokumen menjadi suara alami secara instan. Dukungan ketik langsung atau unggah file dokumen hingga 20 MB.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-6">
+            
+            <!-- Mode Switcher (Tab) -->
+            <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-2">
+                <button type="button" id="tabTextInput" onclick="switchMode('text')" class="flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-blue-600 shadow-sm">
+                    <i class="fa-solid fa-keyboard mr-1.5"></i> Input Teks
+                </button>
+                <button type="button" id="tabFileInput" onclick="switchMode('file')" class="flex-1 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 rounded-xl transition">
+                    <i class="fa-solid fa-file-arrow-up mr-1.5"></i> Upload File (Maks 20MB)
+                </button>
+            </div>
+
+            <!-- Input Section 1: Text Area -->
+            <div id="sectionText" class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label for="textToSpeak" class="text-xs font-bold uppercase tracking-wider text-slate-700">Teks yang akan dibacakan:</label>
+                    <span id="charCount" class="text-[11px] text-slate-400 font-mono">0 karakter</span>
+                </div>
+                <textarea id="textToSpeak" rows="6" placeholder="Ketik atau tempel teks di sini..." class="w-full p-4 text-sm bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-sans text-slate-800 leading-relaxed"></textarea>
+            </div>
+
+            <!-- Input Section 2: File Upload (Max 20MB) -->
+            <div id="sectionFile" class="hidden space-y-3">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">Unggah Dokumen Teks:</label>
+                <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 rounded-2xl p-6 text-center transition cursor-pointer relative" id="dropZone">
+                    <input type="file" id="fileInput" accept=".txt,.doc,.docx,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
+                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-700">Klik untuk upload atau tarik file ke sini</p>
+                        <p class="text-[11px] text-slate-400">Format: TXT, DOC, DOCX, PDF (Maksimal 20 MB)</p>
+                    </div>
+                </div>
+                <!-- File Info Badge -->
+                <div id="fileInfo" class="hidden flex items-center justify-between bg-blue-50 border border-blue-200 px-4 py-3 rounded-xl">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <i class="fa-solid fa-file-lines text-blue-600 text-lg"></i>
+                        <div class="truncate">
+                            <p id="fileName" class="text-xs font-bold text-slate-800 truncate">document.txt</p>
+                            <p id="fileSize" class="text-[10px] text-slate-500">0 MB</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="resetFile()" class="text-slate-400 hover:text-red-500 text-xs p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Speech Configuration Options -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <!-- Voice Selection -->
+                <div>
+                    <label for="voiceSelect" class="block text-xs font-bold text-slate-700 mb-1.5">Pilih Suara / Bahasa:</label>
+                    <select id="voiceSelect" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <option value="">Memuat suara...</option>
+                    </select>
+                </div>
+
+                <!-- Speed Control -->
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-slate-700 mb-1.5">
+                        <span>Kecepatan:</span>
+                        <span id="rateValue" class="text-blue-600">1x</span>
+                    </div>
+                    <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1" class="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Pitch Control -->
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-slate-700 mb-1.5">
+                        <span>Nada (Pitch):</span>
+                        <span id="pitchValue" class="text-blue-600">1</span>
+                    </div>
+                    <input type="range" id="pitch" min="0.5" max="1.5" value="1" step="0.1" class="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-4 border-t border-slate-100">
+                <button type="button" id="btnPlay" onclick="speakText()" class="flex-1 sm:flex-initial px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition">
+                    <i class="fa-solid fa-play"></i> Putar Suara
+                </button>
+                <button type="button" id="btnPause" onclick="pauseText()" class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition hidden">
+                    <i class="fa-solid fa-pause"></i> Jeda
+                </button>
+                <button type="button" id="btnResume" onclick="resumeText()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition hidden">
+                    <i class="fa-solid fa-play"></i> Lanjutkan
+                </button>
+                <button type="button" id="btnStop" onclick="stopText()" class="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-stop"></i> Berhenti
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        &copy; 2026 Rumah Tools - Platform Layanan Digital
+    </footer>
+
+    <!-- Logic Engine JS -->
+    <script>
+        const synth = window.speechSynthesis;
+        let voices = [];
+        let currentMode = 'text'; // 'text' | 'file'
+        let uploadedText = '';
+
+        const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+
+        // Load voices
+        function populateVoiceList() {
+            voices = synth.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.setAttribute('data-lang', voice.lang);
+                option.setAttribute('data-name', voice.name);
+                if (voice.lang.includes('id')) {
+                    option.selected = true; // Priority Bahasa Indonesia
+                }
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        populateVoiceList();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        // Live text counter
+        document.getElementById('textToSpeak').addEventListener('input', function() {
+            document.getElementById('charCount').innerText = `${this.value.length} karakter`;
+        });
+
+        // Sliders indicator updates
+        document.getElementById('rate').addEventListener('input', function() {
+            document.getElementById('rateValue').innerText = `${this.value}x`;
+        });
+        document.getElementById('pitch').addEventListener('input', function() {
+            document.getElementById('pitchValue').innerText = this.value;
+        });
+
+        // Mode Switcher
+        function switchMode(mode) {
+            currentMode = mode;
+            const tabText = document.getElementById('tabTextInput');
+            const tabFile = document.getElementById('tabFileInput');
+            const secText = document.getElementById('sectionText');
+            const secFile = document.getElementById('sectionFile');
+
+            if (mode === 'text') {
+                tabText.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-blue-600 shadow-sm";
+                tabFile.className = "flex-1 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 rounded-xl transition";
+                secText.classList.remove('hidden');
+                secFile.classList.add('hidden');
+            } else {
+                tabFile.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-white text-blue-600 shadow-sm";
+                tabText.className = "flex-1 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 rounded-xl transition";
+                secFile.classList.remove('hidden');
+                secText.classList.add('hidden');
+            }
+        }
+
+        // File Handler & 20MB Validation
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > MAX_FILE_SIZE) {
+                alert("Ukuran file melebihi batas maksimal 20 MB!");
+                input.value = "";
+                return;
+            }
+
+            document.getElementById('fileName').innerText = file.name;
+            document.getElementById('fileSize').innerText = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+            document.getElementById('fileInfo').classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedText = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        function resetFile() {
+            document.getElementById('fileInput').value = "";
+            document.getElementById('fileInfo').classList.add('hidden');
+            uploadedText = "";
+        }
+
+        // Speech Controls
+        function speakText() {
+            synth.cancel(); // Reset previous speech
+
+            const text = currentMode === 'text' 
+                ? document.getElementById('textToSpeak').value 
+                : uploadedText;
+
+            if (!text.trim()) {
+                alert("Harap masukkan teks atau upload file terlebih dahulu.");
+                return;
+            }
+
+            if (window.trackFeature) trackFeature('text-to-speech');
+
+            const utterThis = new SpeechSynthesisUtterance(text);
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedOption = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
+
+            utterThis.voice = voices.find(v => v.name === selectedOption);
+            utterThis.rate = parseFloat(document.getElementById('rate').value);
+            utterThis.pitch = parseFloat(document.getElementById('pitch').value);
+
+            utterThis.onstart = function() {
+                toggleControls('speaking');
+            };
+
+            utterThis.onend = function() {
+                toggleControls('stopped');
+            };
+
+            synth.speak(utterThis);
+        }
+
+        function pauseText() {
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+                toggleControls('paused');
+            }
+        }
+
+        function resumeText() {
+            if (synth.paused) {
+                synth.resume();
+                toggleControls('speaking');
+            }
+        }
+
+        function stopText() {
+            synth.cancel();
+            toggleControls('stopped');
+        }
+
+        function toggleControls(state) {
+            const btnPlay = document.getElementById('btnPlay');
+            const btnPause = document.getElementById('btnPause');
+            const btnResume = document.getElementById('btnResume');
+
+            if (state === 'speaking') {
+                btnPlay.classList.add('hidden');
+                btnPause.classList.remove('hidden');
+                btnResume.classList.add('hidden');
+            } else if (state === 'paused') {
+                btnPause.classList.add('hidden');
+                btnResume.classList.remove('hidden');
+            } else {
+                btnPlay.classList.remove('hidden');
+                btnPause.classList.add('hidden');
+                btnResume.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

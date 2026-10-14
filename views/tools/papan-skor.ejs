@@ -1,0 +1,603 @@
+<%- include('../partials/header') %>
+
+<%- include('../partials/navbar') %>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .font-digital { font-family: 'Courier New', Courier, monospace; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between p-4">
+
+    <!-- Header & Pengaturan -->
+    <header class="flex flex-wrap justify-between items-center bg-gray-800 p-4 rounded-xl gap-4 shadow-lg">
+        <div class="flex items-center gap-3">
+            <a href="/" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left text-xl"></i></a>
+            <h1 class="text-xl font-bold text-amber-400">🏆 Papan Skor & Timeline Analisis</h1>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Mode Timer -->
+            <select id="timerModeSelect" onchange="changeTimerMode()" class="bg-gray-700 text-white px-3 py-1.5 rounded-lg border border-gray-600 focus:outline-none focus:border-amber-500 text-sm">
+                <option value="up">⏱️ Waktu Maju (Stopwatch)</option>
+                <option value="down">⏳ Waktu Mundur (Timer)</option>
+            </select>
+
+            <!-- Preset Olahraga -->
+            <select id="presetSelect" onchange="applyPreset()" class="bg-gray-700 text-white px-3 py-1.5 rounded-lg border border-gray-600 focus:outline-none focus:border-amber-500 text-sm">
+                <option value="custom">⚙️ Kustom / Bebas</option>
+                <option value="futsal">⚽ Futsal (20 Mins)</option>
+                <option value="basket">🏀 Basket (4 Quarter)</option>
+                <option value="badminton">🏸 Badminton (21 Poin)</option>
+                <option value="voli">🏐 Voli (25 Poin)</option>
+            </select>
+
+            <button onclick="toggleFullscreen()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm"><i class="fa-solid fa-expand"></i></button>
+        </div>
+    </header>
+
+    <!-- Layout Utama: Papan Skor + Panel Log Timeline -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-4">
+        
+        <!-- Kolom Kiri & Tengah: Papan Skor (Spans 2 cols on lg) -->
+        <main class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Tim A -->
+            <div class="bg-gray-800 border-2 border-red-500/50 rounded-2xl p-6 flex flex-col items-center justify-between shadow-2xl relative">
+                <input type="text" value="TIM A" id="nameTeamA" class="bg-transparent text-center text-2xl font-bold text-red-400 border-b border-transparent hover:border-gray-500 focus:border-red-500 focus:outline-none w-full uppercase mb-2">
+                
+                <div class="text-8xl font-black font-digital text-red-500 my-4 tracking-wider select-none" id="scoreA">0</div>
+                
+                <div class="flex items-center gap-3 w-full justify-center my-2">
+                    <button onclick="changeScore('A', 1)" class="bg-red-600 hover:bg-red-500 text-white text-2xl font-bold w-16 h-16 rounded-xl shadow-lg active:scale-95 transition">+1</button>
+                    <button onclick="changeScore('A', 2)" class="bg-red-800 hover:bg-red-700 text-white font-bold w-12 h-12 rounded-xl text-sm hidden" id="btnPlus2A">+2</button>
+                    <button onclick="changeScore('A', 3)" class="bg-red-900 hover:bg-red-800 text-white font-bold w-12 h-12 rounded-xl text-sm hidden" id="btnPlus3A">+3</button>
+                    <button onclick="changeScore('A', -1)" class="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold w-12 h-12 rounded-xl">-1</button>
+                </div>
+
+                <div class="flex justify-between w-full mt-4 pt-4 border-t border-gray-700 text-sm">
+                    <span>SET: <strong id="setA" class="text-red-400 text-lg">0</strong> <button onclick="addSet('A')" class="ml-1 text-xs bg-gray-700 px-1.5 py-0.5 rounded">+</button></span>
+                    <span>FOUL: <strong id="foulA" class="text-red-400 text-lg">0</strong> <button onclick="addFoul('A')" class="ml-1 text-xs bg-gray-700 px-1.5 py-0.5 rounded">+</button></span>
+                </div>
+            </div>
+
+            <!-- Tim B -->
+            <div class="bg-gray-800 border-2 border-blue-500/50 rounded-2xl p-6 flex flex-col items-center justify-between shadow-2xl relative">
+                <input type="text" value="TIM B" id="nameTeamB" class="bg-transparent text-center text-2xl font-bold text-blue-400 border-b border-transparent hover:border-gray-500 focus:border-blue-500 focus:outline-none w-full uppercase mb-2">
+                
+                <div class="text-8xl font-black font-digital text-blue-500 my-4 tracking-wider select-none" id="scoreB">0</div>
+                
+                <div class="flex items-center gap-3 w-full justify-center my-2">
+                    <button onclick="changeScore('B', 1)" class="bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold w-16 h-16 rounded-xl shadow-lg active:scale-95 transition">+1</button>
+                    <button onclick="changeScore('B', 2)" class="bg-blue-800 hover:bg-blue-700 text-white font-bold w-12 h-12 rounded-xl text-sm hidden" id="btnPlus2B">+2</button>
+                    <button onclick="changeScore('B', 3)" class="bg-blue-900 hover:bg-blue-800 text-white font-bold w-12 h-12 rounded-xl text-sm hidden" id="btnPlus3B">+3</button>
+                    <button onclick="changeScore('B', -1)" class="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold w-12 h-12 rounded-xl">-1</button>
+                </div>
+
+                <div class="flex justify-between w-full mt-4 pt-4 border-t border-gray-700 text-sm">
+                    <span>SET: <strong id="setB" class="text-blue-400 text-lg">0</strong> <button onclick="addSet('B')" class="ml-1 text-xs bg-gray-700 px-1.5 py-0.5 rounded">+</button></span>
+                    <span>FOUL: <strong id="foulB" class="text-blue-400 text-lg">0</strong> <button onclick="addFoul('B')" class="ml-1 text-xs bg-gray-700 px-1.5 py-0.5 rounded">+</button></span>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Kolom Kanan: Timeline Riwayat Skor / Analisis -->
+        <aside class="bg-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-2xl border border-gray-700 h-[480px]">
+            <div>
+                <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-700">
+                    <h2 class="font-bold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol"></i> Timeline Skor
+                    </h2>
+                    <button onclick="copyLog()" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-2.5 py-1 rounded flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Salin Log
+                    </button>
+                </div>
+
+                <!-- Scrollable Log Entries -->
+                <div id="logContainer" class="space-y-2 overflow-y-auto max-h-[380px] pr-1 text-xs">
+                    <div class="text-gray-500 text-center py-8 italic">Pertandingan dimulai. Belum ada skor tercatat.</div>
+                </div>
+            </div>
+
+            <div class="text-right text-[10px] text-gray-400 pt-2 border-t border-gray-700">
+                Log mencatat timestamp, poin, & interval waktu.
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Control Bar & Timer Footer -->
+    <footer class="bg-gray-800 p-4 rounded-xl flex flex-wrap justify-between items-center gap-4 shadow-lg">
+        <div class="flex items-center gap-2">
+            <button onclick="swapSides()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate"></i> Tukar Lapangan
+            </button>
+            <button onclick="resetMatch()" class="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                Reset Semua
+            </button>
+            <button onclick="finishMatchAndShowChart()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-chart-line"></i> Selesai & Grafik
+            </button>
+        </div>
+        <!-- Modal Grafik & Analisis Pertandingan -->
+        <div id="analysisModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-800 rounded-2xl max-w-3xl w-full p-6 border border-gray-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+                    <h3 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                        📊 Grafik Perjalanan Skor & Analisis
+                    </h3>
+                    <button onclick="closeAnalysisModal()" class="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+                </div>
+
+                <!-- Ringkasan Pemenang -->
+                <div id="winnerBanner" class="bg-gray-900/80 p-4 rounded-xl text-center border border-gray-700">
+                    <!-- Diisi otomatis oleh JS -->
+                </div>
+
+                <!-- Canvas Grafik Chart.js -->
+                <div class="bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <canvas id="scoreChart" class="w-full max-h-[300px]"></canvas>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="flex justify-end gap-3 pt-2">
+                    <button onclick="copyLog()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">
+                        <i class="fa-regular fa-copy"></i> Salin Log Teks
+                    </button>
+                    <button onclick="closeAnalysisModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Display -->
+        <div class="flex items-center gap-4 bg-gray-900 px-4 py-2 rounded-lg border border-gray-700">
+            <i class="fa-solid fa-stopwatch text-amber-400 text-xl"></i>
+            <div id="timerDisplay" class="text-3xl font-bold font-digital text-amber-400 tracking-widest">00:00</div>
+            <div class="flex gap-1">
+                <button onclick="toggleTimer()" id="btnTimerStart" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold">START</button>
+                <button onclick="resetTimer()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">RESET</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic JavaScript -->
+    <script>
+        let state = { scoreA: 0, scoreB: 0, setA: 0, setB: 0, foulA: 0, foulB: 0 };
+        let timerSeconds = 0;
+        let timerMode = 'up'; // 'up' (Stopwatch) atau 'down' (Timer)
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let scoreLogs = []; // Menampung objek { time, team, point, scoreA, scoreB }
+
+        function updateUI() {
+            document.getElementById('scoreA').innerText = state.scoreA;
+            document.getElementById('scoreB').innerText = state.scoreB;
+            document.getElementById('setA').innerText = state.setA;
+            document.getElementById('setB').innerText = state.setB;
+            document.getElementById('foulA').innerText = state.foulA;
+            document.getElementById('foulB').innerText = state.foulB;
+        }
+
+        function getFormattedTimer() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function changeScore(team, val) {
+            const teamNameA = document.getElementById('nameTeamA').value || 'TIM A';
+            const teamNameB = document.getElementById('nameTeamB').value || 'TIM B';
+
+            if (team === 'A') state.scoreA = Math.max(0, state.scoreA + val);
+            if (team === 'B') state.scoreB = Math.max(0, state.scoreB + val);
+            
+            updateUI();
+
+            // Catat log riwayat jika poin bertambah
+            if (val > 0) {
+                const scoringTeam = team === 'A' ? teamNameA : teamNameB;
+                const logEntry = {
+                    time: getFormattedTimer(),
+                    team: scoringTeam,
+                    teamCode: team,
+                    point: val,
+                    scoreText: `${state.scoreA} - ${state.scoreB}`
+                };
+                scoreLogs.unshift(logEntry); // Tambah di paling atas
+                renderLogs();
+            }
+        }
+
+        function addFoul(team) {
+            if (team === 'A') state.foulA++;
+            if (team === 'B') state.foulB++;
+            updateUI();
+        }
+
+        function addSet(team) {
+            if (team === 'A') state.setA++;
+            if (team === 'B') state.setB++;
+            updateUI();
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logContainer');
+            if (scoreLogs.length === 0) {
+                container.innerHTML = `<div class="text-gray-500 text-center py-8 italic">Pertandingan dimulai. Belum ada skor tercatat.</div>`;
+                return;
+            }
+
+            container.innerHTML = scoreLogs.map(log => `
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded border-l-4 ${log.teamCode === 'A' ? 'border-red-500' : 'border-blue-500'}">
+                    <div class="flex items-center gap-2">
+                        <span class="font-digital text-amber-400 bg-gray-900 px-1.5 py-0.5 rounded text-[11px]">[${log.time}]</span>
+                        <span class="font-semibold ${log.teamCode === 'A' ? 'text-red-400' : 'text-blue-400'}">${log.team}</span>
+                        <span class="text-gray-300">(+${log.point})</span>
+                    </div>
+                    <span class="font-bold font-digital text-white bg-gray-800 px-2 py-0.5 rounded">${log.scoreText}</span>
+                </div>
+            `).join('');
+        }
+
+        function copyLog() {
+            if (scoreLogs.length === 0) {
+                alert("Belum ada riwayat skor untuk disalin.");
+                return;
+            }
+            const teamA = document.getElementById('nameTeamA').value;
+            const teamB = document.getElementById('nameTeamB').value;
+            
+            let text = `📊 RIWAYAT PERTANDINGAN: ${teamA} VS ${teamB}\n-----------------------------------\n`;
+            scoreLogs.slice().reverse().forEach(log => {
+                text += `[${log.time}] ${log.team} (+${log.point}) -> Skor: ${log.scoreText}\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 Teks riwayat pertandingan berhasil disalin ke clipboard!");
+            });
+        }
+
+        function changeTimerMode() {
+            timerMode = document.getElementById('timerModeSelect').value;
+            resetTimer();
+        }
+
+        function applyPreset() {
+            const preset = document.getElementById('presetSelect').value;
+            const btn2A = document.getElementById('btnPlus2A');
+            const btn2B = document.getElementById('btnPlus2B');
+            const btn3A = document.getElementById('btnPlus3A');
+            const btn3B = document.getElementById('btnPlus3B');
+
+            btn2A.classList.add('hidden'); btn2B.classList.add('hidden');
+            btn3A.classList.add('hidden'); btn3B.classList.add('hidden');
+
+            if (preset === 'futsal') {
+                document.getElementById('timerModeSelect').value = 'down';
+                timerMode = 'down';
+                timerSeconds = 1200; // 20 Menit
+            } else if (preset === 'basket') {
+                document.getElementById('timerModeSelect').value = 'down';
+                timerMode = 'down';
+                timerSeconds = 600; // 10 Menit
+                btn2A.classList.remove('hidden'); btn2B.classList.remove('hidden');
+                btn3A.classList.remove('hidden'); btn3B.classList.remove('hidden');
+            } else {
+                document.getElementById('timerModeSelect').value = 'up';
+                timerMode = 'up';
+                timerSeconds = 0;
+            }
+            resetTimer();
+        }
+
+        function renderTimer() {
+            document.getElementById('timerDisplay').innerText = getFormattedTimer();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btnTimerStart');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerText = 'START';
+                btn.className = 'bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold';
+            } else {
+                isTimerRunning = true;
+                btn.innerText = 'PAUSE';
+                btn.className = 'bg-amber-600 hover:bg-amber-500 px-3 py-1 rounded text-xs font-bold';
+                
+                timerInterval = setInterval(() => {
+                    if (timerMode === 'up') {
+                        timerSeconds++;
+                        renderTimer();
+                    } else {
+                        if (timerSeconds > 0) {
+                            timerSeconds--;
+                            renderTimer();
+                        } else {
+                            clearInterval(timerInterval);
+                            alert("⏱️ Waktu Habis!");
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            if (isTimerRunning) toggleTimer();
+            if (timerMode === 'up') timerSeconds = 0;
+            renderTimer();
+        }
+
+        function swapSides() {
+            const nameA = document.getElementById('nameTeamA').value;
+            document.getElementById('nameTeamA').value = document.getElementById('nameTeamB').value;
+            document.getElementById('nameTeamB').value = nameA;
+
+            const temp = { ...state };
+            state.scoreA = temp.scoreB; state.scoreB = temp.scoreA;
+            state.setA = temp.setB;     state.setB = temp.setA;
+            state.foulA = temp.foulB;   state.foulB = temp.foulA;
+            updateUI();
+        }
+
+        function resetMatch() {
+            if(confirm("Yakin ingin meriset seluruh skor & timeline log?")) {
+                state = { scoreA: 0, scoreB: 0, setA: 0, setB: 0, foulA: 0, foulB: 0 };
+                scoreLogs = [];
+                resetTimer();
+                updateUI();
+                renderLogs();
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        let chartInstance = null; // Menyimpan instance Chart.js
+
+        // function finishMatchAndShowChart() {
+        //     if (scoreLogs.length === 0) {
+        //         alert("Belum ada skor yang tercatat untuk dianalisis!");
+        //         return;
+        //     }
+
+        //     // Hentikan timer jika sedang berjalan
+        //     if (isTimerRunning) toggleTimer();
+
+        //     const nameA = document.getElementById('nameTeamA').value || 'TIM A';
+        //     const nameB = document.getElementById('nameTeamB').value || 'TIM B';
+
+        //     // 1. Tentukan Pemenang
+        //     const winnerBanner = document.getElementById('winnerBanner');
+        //     if (state.scoreA > state.scoreB) {
+        //         winnerBanner.innerHTML = `<span class="text-red-400 font-bold text-lg">🏆 HASIL AKHIR: ${nameA} MENANG!</span> <span class="text-gray-400">(${state.scoreA} - ${state.scoreB})</span>`;
+        //     } else if (state.scoreB > state.scoreA) {
+        //         winnerBanner.innerHTML = `<span class="text-blue-400 font-bold text-lg">🏆 HASIL AKHIR: ${nameB} MENANG!</span> <span class="text-gray-400">(${state.scoreB} - ${state.scoreA})</span>`;
+        //     } else {
+        //         winnerBanner.innerHTML = `<span class="text-amber-400 font-bold text-lg">🤝 HASIL AKHIR: SERI!</span> <span class="text-gray-400">(${state.scoreA} - ${state.scoreB})</span>`;
+        //     }
+
+        //     // 2. Olah Data Log menjadi Format Chart
+        //     // Log diurutkan dari awal pertandingan ke akhir
+        //     const chronologicalLogs = scoreLogs.slice().reverse();
+
+        //     const labels = ['00:00', ...chronologicalLogs.map(log => log.time)];
+        //     const dataA = [0];
+        //     const dataB = [0];
+
+        //     let currentA = 0;
+        //     let currentB = 0;
+
+        //     chronologicalLogs.forEach(log => {
+        //         if (log.teamCode === 'A') currentA += log.point;
+        //         if (log.teamCode === 'B') currentB += log.point;
+        //         dataA.push(currentA);
+        //         dataB.push(currentB);
+        //     });
+
+        //     // 3. Render Chart.js
+        //     const ctx = document.getElementById('scoreChart').getContext('2d');
+
+        //     // Hapus instance chart lama jika ada
+        //     if (chartInstance) {
+        //         chartInstance.destroy();
+        //     }
+
+        //     chartInstance = new Chart(ctx, {
+        //         type: 'line',
+        //         data: {
+        //             labels: labels,
+        //             datasets: [
+        //                 {
+        //                     label: nameA,
+        //                     data: dataA,
+        //                     borderColor: '#ef4444', // Merah
+        //                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        //                     stepped: true, // Membuat garis tangga (sesuai penambahan poin)
+        //                     borderWidth: 3,
+        //                     pointRadius: 4,
+        //                     pointBackgroundColor: '#ef4444'
+        //                 },
+        //                 {
+        //                     label: nameB,
+        //                     data: dataB,
+        //                     borderColor: '#3b82f6', // Biru
+        //                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        //                     stepped: true,
+        //                     borderWidth: 3,
+        //                     pointRadius: 4,
+        //                     pointBackgroundColor: '#3b82f6'
+        //                 }
+        //             ]
+        //         },
+        //         options: {
+        //             responsive: true,
+        //             maintainAspectRatio: false,
+        //             plugins: {
+        //                 legend: {
+        //                     labels: { color: '#ffffff', font: { family: 'sans-serif', weight: 'bold' } }
+        //                 },
+        //                 tooltip: {
+        //                     mode: 'index',
+        //                     intersect: false
+        //                 }
+        //             },
+        //             scales: {
+        //                 x: {
+        //                     title: { display: true, text: 'Waktu Pertandingan', color: '#9ca3af' },
+        //                     ticks: { color: '#9ca3af' },
+        //                     grid: { color: '#374151' }
+        //                 },
+        //                 y: {
+        //                     title: { display: true, text: 'Akumulasi Skor', color: '#9ca3af' },
+        //                     ticks: { color: '#9ca3af', stepSize: 1 },
+        //                     grid: { color: '#374151' },
+        //                     beginAtZero: true
+        //                 }
+        //             }
+        //         }
+        //     });
+
+        //     // Tampilkan Modal
+        //     document.getElementById('analysisModal').classList.remove('hidden');
+        // }
+        function finishMatchAndShowChart() {
+            if (scoreLogs.length === 0) {
+                alert("Belum ada skor yang tercatat untuk dianalisis!");
+                return;
+            }
+
+            if (isTimerRunning) toggleTimer();
+
+            const nameA = document.getElementById('nameTeamA').value || 'TIM A';
+            const nameB = document.getElementById('nameTeamB').value || 'TIM B';
+            const sportType = document.getElementById('presetSelect').value;
+            const duration = getFormattedTimer();
+
+            let winnerText = 'SERI';
+            if (state.scoreA > state.scoreB) winnerText = nameA;
+            if (state.scoreB > state.scoreA) winnerText = nameB;
+
+            // ========================================================
+            // OTOMATIS SIMPAN KE DATABASE MYSQL VIA FETCH API
+            // ========================================================
+            fetch('/api/papan-skor/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    teamA: nameA,
+                    teamB: nameB,
+                    scoreA: state.scoreA,
+                    scoreB: state.scoreB,
+                    sportType: sportType,
+                    matchDuration: duration,
+                    winner: winnerText,
+                    scoreLogs: scoreLogs
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("✅ Pertandingan berhasil disimpan ke database!");
+                }
+            })
+            .catch(err => console.error("❌ Error simpan DB:", err));
+
+            // 1. Tampilkan Banner Pemenang
+            const winnerBanner = document.getElementById('winnerBanner');
+            if (state.scoreA > state.scoreB) {
+                winnerBanner.innerHTML = `<span class="text-red-400 font-bold text-lg">🏆 HASIL AKHIR: ${nameA} MENANG!</span> <span class="text-gray-400">(${state.scoreA} - ${state.scoreB})</span>`;
+            } else if (state.scoreB > state.scoreA) {
+                winnerBanner.innerHTML = `<span class="text-blue-400 font-bold text-lg">🏆 HASIL AKHIR: ${nameB} MENANG!</span> <span class="text-gray-400">(${state.scoreB} - ${state.scoreA})</span>`;
+            } else {
+                winnerBanner.innerHTML = `<span class="text-amber-400 font-bold text-lg">🤝 HASIL AKHIR: SERI!</span> <span class="text-gray-400">(${state.scoreA} - ${state.scoreB})</span>`;
+            }
+
+            // 2. Render Grafik Chart.js
+            const chronologicalLogs = scoreLogs.slice().reverse();
+            const labels = ['00:00', ...chronologicalLogs.map(log => log.time)];
+            const dataA = [0];
+            const dataB = [0];
+
+            let currentA = 0;
+            let currentB = 0;
+
+            chronologicalLogs.forEach(log => {
+                if (log.teamCode === 'A') currentA += log.point;
+                if (log.teamCode === 'B') currentB += log.point;
+                dataA.push(currentA);
+                dataB.push(currentB);
+            });
+
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: nameA,
+                            data: dataA,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            stepped: true,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#ef4444'
+                        },
+                        {
+                            label: nameB,
+                            data: dataB,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            stepped: true,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#3b82f6'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Waktu Pertandingan', color: '#9ca3af' }, ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                        y: { title: { display: true, text: 'Akumulasi Skor', color: '#9ca3af' }, ticks: { color: '#9ca3af', stepSize: 1 }, grid: { color: '#374151' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            document.getElementById('analysisModal').classList.remove('hidden');
+        }
+
+        function closeAnalysisModal() {
+            document.getElementById('analysisModal').classList.add('hidden');
+        }
+
+        renderTimer();
+    </script>
+</body>
+</html>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .card { border: none !important; shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container py-4">
+        <!-- Header & Navigasi -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>Laporan Penjualan Detail</h3>
+                <p class="text-muted small mb-0 mb-1">Pantau riwayat transaksi, omzet, dan rincian barang terjual. <span id="namaTokoLabel" class="fw-bold text-dark"></span></p>
+            </div>
+            <div>
+                <a href="/tools/kasir" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-calculator me-1"></i>Kasir</a>
+                <a href="/dashboard/inventory" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-seam me-1"></i>Inventaris</a>
+            </div>
+        </div>
+
+        <!-- Filter & Card Summary -->
+        <div class="card shadow-sm border-0 mb-4 no-print">
+            <div class="card-body">
+                <form id="filterForm" class="row g-3 align-items-end" onsubmit="loadReports(event)">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Dari Tanggal</label>
+                        <input type="date" id="startDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Sampai Tanggal</label>
+                        <input type="date" id="endDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Metode Pembayaran</label>
+                        <select id="ketBayar" class="form-select form-select-sm">
+                            <option value="ALL">-- Semua Metode --</option>
+                            <option value="Tunai">Tunai / Cash</option>
+                            <option value="QRIS">QRIS</option>
+                            <option value="Transfer Bank">Transfer Bank</option>
+                            <option value="Nontunai">Nontunai / Debit</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter me-1"></i>Filter</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilter()"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    </div>
+                </form>
+                <div class="mt-2 d-flex gap-2 flex-wrap">
+                    <span class="small text-muted align-self-center me-1">Periode cepat:</span>
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="setPeriode('hari')">Hari Ini</button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="setPeriode('minggu')">7 Hari Terakhir</button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="setPeriode('bulan')">Bulan Ini</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ringkasan Statistik -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Total Omzet Penjualan</h6>
+                            <h3 class="fw-bold mb-0" id="summaryOmzet">Rp 0</h3>
+                        </div>
+                        <i class="bi bi-cash-stack fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm bg-success text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Total Transaksi Selesai</h6>
+                            <h3 class="fw-bold mb-0" id="summaryTotalTrx">0 Transaksi</h3>
+                        </div>
+                        <i class="bi bi-receipt fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kroscek Stok: Barang Masuk vs Terjual -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center no-print">
+                <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Kroscek Stok (Barang Masuk vs Terjual)</h6>
+            </div>
+            <div class="card-body p-0">
+                <p class="text-muted small px-3 pt-3 mb-2">
+                    Menampilkan stok saat ini, total barang masuk (dicatat manual di halaman Inventaris), dan total terjual pada periode yang difilter di atas.
+                    Gunakan untuk kroscek manual dengan stok fisik — bukan validasi otomatis, karena sistem tidak menyimpan snapshot stok di awal periode.
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0" id="stockCheckTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nama Produk</th>
+                                <th>Stok Saat Ini</th>
+                                <th>Barang Masuk (Periode)</th>
+                                <th>Terjual (Periode)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockCheckBody">
+                            <tr><td colspan="4" class="text-center py-3 text-muted">Memuat data stok...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Histori Transaksi -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center no-print">
+                <h6 class="fw-bold mb-0"><i class="bi bi-list-stars me-2 text-primary"></i>Daftar Transaksi</h6>
+                <button class="btn btn-outline-dark btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Cetak Laporan</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="reportTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No. Nota</th>
+                                <th>Tanggal & Waktu</th>
+                                <th>Total Item</th>
+                                <th>Metode Bayar</th>
+                                <th>Total Harga</th>
+                                <th class="text-end no-print">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">Memuat data histori penjualan...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail Transaksi -->
+    <div class="modal fade" id="modalDetailTrx" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="detailModalTitle">Detail Transaksi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mb-3 small">
+                <div class="col-6">
+                    <p class="mb-1"><strong>Waktu:</strong> <span id="detailWaktu">-</span></p>
+                    <p class="mb-1"><strong>Kasir:</strong> <span id="detailKasir">-</span></p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-1"><strong>Metode Bayar:</strong> <span id="detailMetode" class="badge bg-secondary">-</span></p>
+                    <p class="mb-1"><strong>Total:</strong> <span id="detailTotal" class="fw-bold text-success">-</span></p>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Kode/Barcode</th>
+                        <th>Nama Produk</th>
+                        <th>Harga</th>
+                        <th>Qty</th>
+                        <th>Satuan</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="detailItemsBody">
+                    <!-- Item detail dimuat via JavaScript -->
+                </tbody>
+            </table>
+          </div>
+          <div class="modal-footer no-print">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnRePrint"><i class="bi bi-printer me-1"></i>Cetak Struk</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set Default Tanggal Hari Ini
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            fetchReports();
+        });
+
+        function loadReports(e) {
+            e.preventDefault();
+            fetchReports();
+        }
+
+        function resetFilter() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            document.getElementById('ketBayar').value = 'ALL';
+            fetchReports();
+        }
+
+        // Filter Periode Cepat: hari ini / 7 hari terakhir / bulan ini
+        function setPeriode(jenis) {
+            const now = new Date();
+            const end = new Date(now);
+            let start = new Date(now);
+
+            if (jenis === 'hari') {
+                start = new Date(now);
+            } else if (jenis === 'minggu') {
+                start.setDate(now.getDate() - 6);
+            } else if (jenis === 'bulan') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+
+            document.getElementById('startDate').value = start.toISOString().split('T')[0];
+            document.getElementById('endDate').value = end.toISOString().split('T')[0];
+            fetchReports();
+        }
+
+        // Fetch Data Laporan dari API
+        async function fetchReports() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const ketBayar = document.getElementById('ketBayar').value;
+
+            fetchStockCheck(startDate, endDate);
+
+            const query = new URLSearchParams({ startDate, endDate, ketBayar }).toString();
+            const res = await fetch(`/api/v1/reports/sales?${query}`);
+            const result = await res.json();
+
+            const tbody = document.getElementById('reportTableBody');
+
+            if (!result.success || result.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Tidak ada transaksi ditemukan pada periode ini.</td></tr>';
+                document.getElementById('summaryOmzet').innerText = 'Rp 0';
+                document.getElementById('summaryTotalTrx').innerText = '0 Transaksi';
+                if (result.summary && result.summary.namaToko) {
+                    document.getElementById('namaTokoLabel').innerText = `— Toko: ${result.summary.namaToko}`;
+                }
+                return;
+            }
+
+            // Update Summary
+            document.getElementById('summaryOmzet').innerText = `Rp ${Number(result.summary.totalOmzet).toLocaleString('id-ID')}`;
+            document.getElementById('summaryTotalTrx').innerText = `${result.summary.totalTransaksi} Transaksi`;
+            if (result.summary.namaToko) {
+                document.getElementById('namaTokoLabel').innerText = `— Toko: ${result.summary.namaToko}`;
+            }
+
+            // Render Tabel
+            tbody.innerHTML = '';
+            result.data.forEach(trx => {
+                const dateFormatted = new Date(trx.created_at).toLocaleString('id-ID');
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>#${trx.id}</code></td>
+                        <td>${dateFormatted}</td>
+                        <td>${trx.total_qty || 0} Item (${trx.total_item || 0} Produk)</td>
+                        <td><span class="badge bg-info text-dark">${trx.ket_bayar}</span></td>
+                        <td class="fw-bold">Rp ${Number(trx.total_harga).toLocaleString('id-ID')}</td>
+                        <td class="text-end no-print">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="viewDetail(${trx.id})">
+                                <i class="bi bi-eye"></i> Detail
+                            </button>
+                            <a href="/kasir/print/${trx.id}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Kroscek Stok: Barang Masuk vs Terjual (mengikuti filter tanggal yang sama)
+        async function fetchStockCheck(startDate, endDate) {
+            const tbody = document.getElementById('stockCheckBody');
+            try {
+                const query = new URLSearchParams({ startDate, endDate }).toString();
+                const res = await fetch(`/api/v1/reports/stock?${query}`);
+                const result = await res.json();
+
+                if (!result.success || result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Belum ada data produk.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = result.data.map(p => `
+                    <tr>
+                        <td>${p.nama_produk}</td>
+                        <td>${p.stok_saat_ini} ${p.satuan_terkecil}</td>
+                        <td class="text-success">+${p.total_masuk_periode} ${p.satuan_terkecil}</td>
+                        <td class="text-danger">-${p.total_terjual_periode} ${p.satuan_terkecil}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-danger">Gagal memuat data stok.</td></tr>';
+            }
+        }
+
+        // Modal Detail Transaksi
+        async function viewDetail(transactionId) {
+            const res = await fetch(`/api/v1/reports/sales/${transactionId}`);
+            const result = await res.json();
+
+            if (!result.success) {
+                alert(result.message);
+                return;
+            }
+
+            const { transaction, items } = result;
+
+            document.getElementById('detailModalTitle').innerText = `Detail Transaksi #${transaction.id}`;
+            document.getElementById('detailWaktu').innerText = new Date(transaction.created_at).toLocaleString('id-ID');
+            document.getElementById('detailKasir').innerText = transaction.username;
+            document.getElementById('detailMetode').innerText = transaction.ket_bayar;
+            document.getElementById('detailTotal').innerText = `Rp ${Number(transaction.total_harga).toLocaleString('id-ID')}`;
+            document.getElementById('btnRePrint').onclick = () => window.open(`/kasir/print/${transaction.id}`, '_blank');
+
+            const tbody = document.getElementById('detailItemsBody');
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${item.kode_produk}</code></td>
+                        <td>${item.nama_produk}</td>
+                        <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
+                        <td>${item.qty}</td>
+                        <td>${item.satuan}</td>
+                        <td class="text-end">Rp ${Number(item.subtotal).toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            new bootstrap.Modal(document.getElementById('modalDetailTrx')).show();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="py-8 bg-gray-50 min-h-screen">
+    <div class="w-full lg:w-3/4 max-w-5xl mx-auto px-4">
+        
+        <!-- Section Upload & Preview Awal -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1">Hapus & Ganti Warna Background Foto</h1>
+            <p class="text-sm text-gray-500 mb-6">Unggah foto, pratinjau sebelum diproses, lalu ubah warna latar belakang sesuai kebutuhan (Pas Foto, ID Card, dll).</p>
+
+            <form id="bgRemoverForm">
+                <input type="hidden" name="_csrf" id="csrfInput" value="<%= csrfToken %>">
+                <!-- Drop Zone -->
+                <div 
+                    id="dropZone"
+                    class="border-2 border-dashed border-gray-300 hover:border-amber-800 rounded-2xl p-6 text-center bg-gray-50 hover:bg-amber-50/20 transition cursor-pointer mb-4"
+                >
+                    <svg class="mx-auto h-10 w-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm font-semibold text-gray-700 mb-1">Klik atau seret foto ke sini</p>
+                    <p class="text-xs text-gray-400">Format: JPG, JPEG, PNG, WEBP (Maksimal 10MB)</p>
+                    
+                    <input 
+                        type="file" 
+                        name="image_file" 
+                        id="imageInput" 
+                        accept="image/png, image/jpeg, image/webp" 
+                        required 
+                        class="hidden"
+                    >
+                </div>
+
+                <!-- Preview Gambar Sebelum Diproses -->
+                <div id="initialPreviewContainer" class="hidden mb-6 text-center border-t border-gray-100 pt-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2">Pratinjau Foto Yang Dipilih:</p>
+                    <div class="inline-block bg-gray-100 p-2 rounded-xl border border-gray-200">
+                        <img id="initialPreview" src="" alt="Pratinjau" class="max-h-56 rounded-lg object-contain">
+                    </div>
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="processBtn"
+                    class="w-full bg-amber-800 hover:bg-amber-900 text-white font-semibold text-sm py-3 px-6 rounded-xl transition shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    disabled
+                >
+                    Proses Hapus Background
+                </button>
+            </form>
+
+            <!-- Spinner Loading -->
+            <div id="loadingState" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-amber-800 border-t-transparent mb-3"></div>
+                <p class="text-sm font-semibold text-gray-700">Sedang memproses AI Hapus Background...</p>
+            </div>
+        </div>
+
+        <!-- Section Hasil & Kontrol Warna Background -->
+        <div id="resultContainer" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Hasil & Pengaturan Warna Background</h2>
+            
+            <!-- Pilihan Warna Background -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-3">Pilih Warna Latar Belakang Baru:</label>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" onclick="setBgColor('transparent')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold bg-white border-gray-300 hover:border-amber-800">Transparan (PNG)</button>
+                    <button type="button" onclick="setBgColor('#db2777')" class="w-8 h-8 rounded-full border-2 border-white shadow bg-pink-600" title="Merah Pas Foto"></button>
+                    <button type="button" onclick="setBgColor('#2563eb')" class="w-8 h-8 rounded-full border-2 border-white shadow bg-blue-600" title="Biru Pas Foto"></button>
+                    <button type="button" onclick="setBgColor('#ffffff')" class="w-8 h-8 rounded-full border-2 border-gray-300 shadow bg-white" title="Putih"></button>
+                    <button type="button" onclick="setBgColor('#000000')" class="w-8 h-8 rounded-full border-2 border-white shadow bg-black" title="Hitam"></button>
+                    
+                    <div class="flex items-center gap-2 border-l border-gray-300 pl-3 ml-2">
+                        <span class="text-xs text-gray-500 font-medium">Kustom:</span>
+                        <input type="color" id="customColorPicker" value="#ffffff" onchange="setBgColor(this.value)" class="w-8 h-8 rounded border-0 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display Canvas Hasil -->
+            <div class="text-center">
+                <div class="inline-block p-2 rounded-xl border border-gray-200 shadow-inner" style="background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%); background-size: 20px 20px;">
+                    <canvas id="outputCanvas" class="max-h-96 object-contain rounded-lg max-w-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Tombol Unduh -->
+            <div class="mt-6 text-center">
+                <button 
+                    onclick="downloadResult()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-3 px-8 rounded-xl transition shadow-sm"
+                >
+                    Download Gambar Hasil
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const imageInput = document.getElementById('imageInput');
+    const processBtn = document.getElementById('processBtn');
+    const form = document.getElementById('bgRemoverForm');
+    const loadingState = document.getElementById('loadingState');
+    const resultContainer = document.getElementById('resultContainer');
+    const initialPreviewContainer = document.getElementById('initialPreviewContainer');
+    const initialPreview = document.getElementById('initialPreview');
+    const outputCanvas = document.getElementById('outputCanvas');
+    const ctx = outputCanvas.getContext('2d');
+
+    let processedImg = new Image();
+    let currentBgColor = 'transparent';
+
+    dropZone.addEventListener('click', () => imageInput.click());
+
+    // Event saat user memilih file (Preview Sebelum Proses)
+    imageInput.addEventListener('change', () => {
+        const file = imageInput.files[0];
+        if (file) {
+            processBtn.disabled = false;
+            initialPreview.src = URL.createObjectURL(file);
+            initialPreviewContainer.classList.remove('hidden');
+        } else {
+            processBtn.disabled = true;
+            initialPreviewContainer.classList.add('hidden');
+        }
+    });
+
+    // Handle Submit Form
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('image_file', imageInput.files[0]);
+        formData.append('_csrf', document.getElementById('csrfInput').value);
+
+        loadingState.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
+        processBtn.disabled = true;
+
+        try {
+            const response = await fetch('/tools/background-remover', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                processedImg.onload = () => {
+                    renderCanvas();
+                    resultContainer.classList.remove('hidden');
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                };
+                processedImg.src = data.resultImage;
+            } else {
+                alert(data.error || 'Gagal memproses gambar.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Terjadi kesalahan koneksi.');
+        } finally {
+            loadingState.classList.add('hidden');
+            processBtn.disabled = false;
+        }
+    });
+
+    // Fungsi Render Canvas gabungan Gambar Transparan + Warna Background
+    function renderCanvas() {
+        outputCanvas.width = processedImg.width;
+        outputCanvas.height = processedImg.height;
+
+        ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+        if (currentBgColor !== 'transparent') {
+            ctx.fillStyle = currentBgColor;
+            ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+        }
+
+        ctx.drawImage(processedImg, 0, 0);
+    }
+
+    // Fungsi Ubah Warna Background
+    function setBgColor(color) {
+        currentBgColor = color;
+        renderCanvas();
+    }
+
+    // Fungsi Download Hasil
+    function downloadResult() {
+        const link = document.createElement('a');
+        const isTransparent = currentBgColor === 'transparent';
+        link.download = isTransparent ? 'foto_tanpa_bg.png' : 'foto_background_warna.jpg';
+        link.href = outputCanvas.toDataURL(isTransparent ? 'image/png' : 'image/jpeg', 0.95);
+        link.click();
+    }
+</script>
+
+<%- include('../partials/footer') %>

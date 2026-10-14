@@ -1,0 +1,327 @@
+<%- include('../partials/header') %>
+
+<%- include('../partials/navbar') %>
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Library QR Code Generator & Scanner -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-10 px-4">
+
+    <!-- HERO -->
+    <section class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white">
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+
+            <a href="/tools"
+               class="inline-flex items-center gap-2 text-sm text-blue-100
+                      hover:text-white transition">
+                ← Kembali ke Semua Tools
+            </a>
+
+            <div class="mt-8 flex items-start gap-5">
+
+                <div class="w-16 h-16 rounded-2xl
+                            bg-white/15 border border-white/20
+                            flex items-center justify-center
+                            text-3xl backdrop-blur">
+                    ▣
+                </div>
+
+                <div>
+
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
+                        QR Code Generator
+                    </h1>
+
+                    <p class="mt-3 text-blue-100 max-w-2xl">
+                        Buat QR Code dari URL, teks, nomor telepon,
+                        email, atau informasi lainnya secara gratis.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- TAB NAVIGASI UTAMA -->
+        <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl max-w-md mx-auto shadow-sm">
+            <button onclick="switchTab('generate')" id="tab-generate" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl bg-blue-600 text-white transition-all">
+                <i class="fa-solid fa-qrcode mr-2"></i>Buat QR
+            </button>
+            <button onclick="switchTab('camera')" id="tab-camera" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-camera mr-2"></i>Scan Kamera
+            </button>
+            <button onclick="switchTab('upload')" id="tab-upload" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-upload mr-2"></i>Upload File
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: GENERATOR (TAMPILAN UTAMA) ================= -->
+        <div id="content-generate" class="tab-content block">
+            <div class="grid lg:grid-cols-5 gap-6">
+                <!-- FORM INPUT (KIRI) -->
+                <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+                    <h2 class="text-xl font-bold text-white">Buat QR Code</h2>
+                    <p class="mt-1 text-sm text-slate-400">Masukkan data yang ingin dikonversi.</p>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Teks atau URL</label>
+                        <textarea id="qrInput" rows="5" maxlength="2000" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none" placeholder="Contoh: https://example.com"></textarea>
+                        <div class="mt-2 text-right text-xs text-slate-500">
+                            <span id="charCount">0</span> / 2000
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-3">
+                        <button onclick="generateQR()" class="flex-1 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-white transition">
+                            Generate QR Code
+                        </button>
+                        <button onclick="resetQR()" class="px-5 py-3 rounded-xl border border-slate-800 hover:bg-slate-800 font-semibold text-slate-300 transition">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PREVIEW RESULT (KANAN) -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 flex flex-col justify-between">
+                    <div class="text-center">
+                        <h2 class="text-xl font-bold text-white">Preview</h2>
+                        <p class="mt-1 text-sm text-slate-400">QR Code Anda akan muncul di sini.</p>
+
+                        <div class="mt-6 flex justify-center">
+                            <div id="qrContainer" class="w-64 h-64 rounded-2xl border-2 border-dashed border-slate-800 flex items-center justify-center bg-slate-950 p-4">
+                                <div id="emptyState" class="text-center px-6">
+                                    <div class="text-4xl mb-3 text-slate-600">▣</div>
+                                    <p class="text-sm text-slate-500">QR Code belum dibuat</p>
+                                </div>
+                                <div id="qrcode" class="hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="qrActions" class="hidden mt-6 space-y-3">
+                        <button id="downloadBtn" onclick="downloadQR()" class="w-full px-5 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition">
+                            ↓ Download PNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: SCAN KAMERA ================= -->
+        <div id="content-camera" class="tab-content hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto">
+                <h2 class="text-xl font-bold text-white mb-2">Scan QR / Barcode via Kamera</h2>
+                <p class="text-sm text-slate-400 mb-6">Arahkan kamera ke arah QR Code atau Barcode</p>
+                
+                <div id="reader-camera" class="w-full overflow-hidden rounded-xl border-2 border-dashed border-slate-800 bg-slate-950"></div>
+                
+                <div class="mt-6 flex justify-center gap-3">
+                    <button id="start-cam-btn" onclick="startCamera()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition">
+                        <i class="fa-solid fa-video mr-2"></i>Mulai Kamera
+                    </button>
+                    <button id="stop-cam-btn" onclick="stopCamera()" class="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl transition hidden">
+                        <i class="fa-solid fa-stop mr-2"></i>Hentikan Kamera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: UPLOAD GAMBAR ================= -->
+        <div id="content-upload" class="tab-content hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto">
+                <h2 class="text-xl font-bold text-white mb-2">Upload Gambar QR / Barcode</h2>
+                <p class="text-sm text-slate-400 mb-6">Pilih file gambar dari galeri atau penyimpanan perangkat Anda</p>
+                
+                <input type="file" id="file-input" accept="image/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 mb-4 cursor-pointer bg-slate-950 rounded-xl border border-slate-800">
+                <div id="upload-preview" class="w-full max-w-xs mx-auto mt-4"></div>
+            </div>
+        </div>
+
+        <!-- HASIL SCANNING (MUNCUL OTOMATIS) -->
+        <div id="scan-result-container" class="hidden max-w-xl mx-auto p-6 bg-slate-900 border border-blue-500/50 rounded-2xl shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-sm text-blue-400 font-semibold"><i class="fa-solid fa-circle-check mr-2"></i>Hasil Pembacaan Kode:</p>
+            </div>
+            <textarea id="scan-result-text" class="w-full p-4 border border-slate-800 rounded-xl bg-slate-950 text-slate-100 focus:outline-none" rows="3" readonly></textarea>
+            <button onclick="copyResult()" class="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fa-regular fa-copy"></i> Salin Teks
+            </button>
+        </div>
+
+        <!-- INFO BOTTOM -->
+        <div class="grid md:grid-cols-3 gap-4 pt-4">
+            <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+                <div class="text-2xl mb-2">⚡</div>
+                <h3 class="font-bold text-white">Cepat</h3>
+                <p class="mt-1 text-sm text-slate-400">Proses pembuatan dan pemindaian diproses langsung di browser.</p>
+            </div>
+            <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+                <div class="text-2xl mb-2">🔒</div>
+                <h3 class="font-bold text-white">Privat</h3>
+                <p class="mt-1 text-sm text-slate-400">Gambar dan kamera diproses secara lokal tanpa disimpan di server.</p>
+            </div>
+            <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+                <div class="text-2xl mb-2">💰</div>
+                <h3 class="font-bold text-white">Gratis</h3>
+                <p class="mt-1 text-sm text-slate-400">Dapat digunakan tanpa batasan pemakaian dan tanpa biaya.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT -->
+    <script>
+        let html5QrCode;
+        let qrCodeInstance = null;
+
+        // Counter karakter input
+        document.getElementById('qrInput').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        // 1. Logika Pindah Tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+            activeBtn.classList.remove('text-slate-400');
+
+            if (tabName !== 'camera') stopCamera();
+            document.getElementById('scan-result-container').classList.add('hidden');
+        }
+
+        // 2. Logika Generator QR
+        function generateQR() {
+            const text = document.getElementById('qrInput').value.trim();
+            if (!text) {
+                alert('Silakan masukkan teks atau URL terlebih dahulu!');
+                return;
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.classList.remove('hidden');
+            qrContainer.innerHTML = '';
+
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: text,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrActions').classList.remove('hidden');
+        }
+
+        function resetQR() {
+            document.getElementById('qrInput').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('qrcode').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('qrActions').classList.add('hidden');
+        }
+
+        function downloadQR() {
+            const img = document.querySelector('#qrcode img');
+            if (img) {
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = img.src;
+                link.click();
+            }
+        }
+
+        // 3. Logika Scan Kamera
+        function startCamera() {
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader-camera");
+            
+            document.getElementById('start-cam-btn').classList.add('hidden');
+            document.getElementById('stop-cam-btn').classList.remove('hidden');
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    showResult(decodedText);
+                    stopCamera();
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                alert("Gagal mengakses kamera. Pastikan izin kamera telah diberikan.");
+                stopCamera();
+            });
+        }
+
+        function stopCamera() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('start-cam-btn').classList.remove('hidden');
+                    document.getElementById('stop-cam-btn').classList.add('hidden');
+                }).catch(err => console.log(err));
+            }
+        }
+
+        // 4. Logika Upload Gambar Scanner
+        document.getElementById('file-input').addEventListener('change', e => {
+            if (e.target.files.length === 0) return;
+            const imageFile = e.target.files[0];
+            
+            const html5QrCodeFile = new Html5Qrcode("upload-preview");
+            html5QrCodeFile.scanFile(imageFile, true)
+                .then(decodedText => {
+                    showResult(decodedText);
+                })
+                .catch(err => {
+                    alert("Kode QR atau Barcode tidak terdeteksi pada gambar ini.");
+                });
+        });
+
+        // 5. Tampilkan & Salin Hasil
+        function showResult(text) {
+            document.getElementById('scan-result-container').classList.remove('hidden');
+            document.getElementById('scan-result-text').value = text;
+        }
+
+        function copyResult() {
+            const text = document.getElementById('scan-result-text');
+            text.select();
+            navigator.clipboard.writeText(text.value);
+            alert('Hasil berhasil disalin ke clipboard!');
+        }
+    </script>
+</body>
+</html>
+
+<%- include('../partials/footer') %>

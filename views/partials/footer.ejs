@@ -1,0 +1,136 @@
+<footer class="mt-auto border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <div>
+
+                <div class="flex items-center gap-2 mb-3">
+
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600
+                                flex items-center justify-center text-white font-bold">
+                        RT
+                    </div>
+
+                    <span class="font-bold text-lg">
+                        Rumah Tools
+                    </span>
+
+                </div>
+
+                <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+                    Kumpulan alat digital sederhana, gratis dan mudah digunakan
+                    untuk membantu pekerjaan sehari-hari.
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3 class="font-semibold mb-3">
+                    Tools
+                </h3>
+
+                <div class="space-y-2 text-sm text-slate-500 dark:text-slate-400">
+
+                    <a href="/tools/qr-code" class="block hover:text-blue-600">
+                        QR Code Generator
+                    </a>
+
+                    <a href="/tools/barcode" class="block hover:text-blue-600">
+                        Barcode Generator
+                    </a>
+
+                    <a href="/tools/pdf-merge" class="block hover:text-blue-600">
+                        PDF Merge
+                    </a>
+
+                    <a href="/tools/password-generator" class="block hover:text-blue-600">
+                        Password Generator
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <h3 class="font-semibold mb-3">
+                    Informasi
+                </h3>
+
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Dibuat untuk mempermudah pekerjaan digital sehari-hari.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="border-t border-slate-200 dark:border-slate-800 mt-8 pt-6
+                    flex flex-col sm:flex-row justify-between gap-3
+                    text-sm text-slate-500 dark:text-slate-400">
+
+            <span>
+                © 2026 Rumah Tools
+            </span>
+
+            <span>
+                Gratis • Cepat • Sederhana
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+</div>
+
+
+<script>
+
+function toggleDarkMode() {
+
+    document.documentElement.classList.toggle('dark');
+
+    const isDark =
+        document.documentElement.classList.contains('dark');
+
+    localStorage.setItem('darkMode', isDark);
+
+    document.getElementById('themeIcon').textContent =
+        isDark ? '☀️' : '🌙';
+}
+
+
+function toggleMobileMenu() {
+
+    document
+        .getElementById('mobileMenu')
+        .classList.toggle('hidden');
+
+}
+
+
+if (localStorage.getItem('darkMode') === 'true') {
+
+    document.documentElement.classList.add('dark');
+
+    const icon = document.getElementById('themeIcon');
+
+    if (icon) {
+        icon.textContent = '☀️';
+    }
+
+}
+
+</script>
+
+</body>
+</html>

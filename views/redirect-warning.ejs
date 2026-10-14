@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Rumah Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-md max-w-md w-full p-8 text-center">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-2xl">
+            ⚠️
+        </div>
+        <h1 class="text-xl font-bold mb-2">Anda akan meninggalkan Rumah Tools</h1>
+        <p class="text-sm text-slate-500 mb-5">
+            Tautan singkat ini mengarah ke situs eksternal berikut. Rumah Tools tidak bertanggung jawab
+            atas isi maupun keamanan situs tujuan.
+        </p>
+        <div class="bg-slate-100 rounded-lg px-4 py-3 text-sm font-mono break-all mb-6 text-slate-700">
+            <%= targetUrl %>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="/tools/short-link"
+               class="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition text-sm font-medium">
+                Batal
+            </a>
+            <a href="<%= targetUrl %>"
+               rel="noopener noreferrer"
+               class="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition text-sm font-medium">
+                Lanjutkan ke situs tujuan
+            </a>
+        </div>
+    </div>
+</body>
+</html>

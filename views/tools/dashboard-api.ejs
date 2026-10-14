@@ -1,0 +1,18 @@
+<div class="api-key-section">
+    <h3>API Key Saya</h3>
+    <form action="/dashboard/api-key/generate" method="POST">
+        <button type="submit">Generate API Key Baru</button>
+    </form>
+
+    <% if (apiKeys && apiKeys.length > 0) { %>
+        <ul>
+            <% apiKeys.forEach(key => { %>
+                <li>
+                    <code><%= key.api_key %></code> - Status: <%= key.status %>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>Anda belum memiliki API Key.</p>
+    <% } %>
+</div>

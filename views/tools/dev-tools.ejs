@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CryptoJS untuk Hash MD5 & SHA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 py-4 px-6 mb-6">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 text-slate-700 hover:text-blue-600 font-medium text-sm transition">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+            </a>
+            <h1 class="font-bold text-slate-800 text-lg">Developer & Text Utilities</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 w-full flex-grow">
+        
+        <!-- TOOL SELECTOR TABS -->
+        <div class="flex overflow-x-auto pb-2 mb-6 scrollbar-none justify-start md:justify-center">
+            <div class="bg-slate-200/80 p-1.5 rounded-2xl flex gap-1.5 shadow-inner max-w-3xl w-full min-w-[600px]">
+                <button id="tab-json" onclick="switchTool('json')" 
+                    class="tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-blue-600 shadow-sm">
+                    <i class="fa-solid fa-code"></i> JSON Formatter
+                </button>
+                <button id="tab-base64" onclick="switchTool('base64')" 
+                    class="tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-[#]"></i> Base64 Encoder
+                </button>
+                <button id="tab-slug" onclick="switchTool('slug')" 
+                    class="tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-link"></i> URL Slug Generator
+                </button>
+                <button id="tab-hash" onclick="switchTool('hash')" 
+                    class="tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-key"></i> Hash Generator
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= TOOL 1: JSON FORMATTER & VALIDATOR ================= -->
+        <div id="tool-json" class="tool-content space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-base">JSON Formatter & Validator</h2>
+                        <p class="text-xs text-slate-500">Merapikan, memvalidasi, dan memperkecil (minify) kode JSON.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="formatJSON(2)" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg transition">Format (2 Spasi)</button>
+                        <button onclick="formatJSON(4)" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg transition">Format (4 Spasi)</button>
+                        <button onclick="minifyJSON()" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold text-xs rounded-lg transition">Minify</button>
+                        <button onclick="clearJSON()" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-semibold text-xs rounded-lg transition">Bersihkan</button>
+                    </div>
+                </div>
+
+                <!-- Banner Status Validasi -->
+                <div id="jsonStatus" class="hidden p-3 rounded-xl text-xs font-semibold mb-3 flex items-center justify-between">
+                    <span id="jsonStatusMsg"></span>
+                    <button onclick="copyJSON()" class="text-xs underline hover:opacity-80">Salin Hasil</button>
+                </div>
+
+                <textarea id="jsonInput" rows="14" 
+                    class="w-full p-4 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-900 text-emerald-400 placeholder-slate-600"
+                    placeholder='Tempel skrip JSON di sini...&#10;Contoh: {"nama":"Rumah Tools","status":true,"fitur":["JSON","Base64","Slug"]}'></textarea>
+            </div>
+        </div>
+
+        <!-- ================= TOOL 2: BASE64 ENCODER / DECODER ================= -->
+        <div id="tool-base64" class="tool-content space-y-4 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base">Base64 Encoder / Decoder</h2>
+                    <p class="text-xs text-slate-500">Konversi teks atau berkas media ke format Base64 dan sebaliknya.</p>
+                </div>
+
+                <!-- Teks Base64 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">Input Teks / String Base64</label>
+                        <textarea id="base64Input" rows="7" 
+                            class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            placeholder="Ketik teks biasa atau string Base64..."></textarea>
+                        <div class="flex gap-2">
+                            <button onclick="processBase64('encode')" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">Encode Teks -> Base64</button>
+                            <button onclick="processBase64('decode')" class="flex-1 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition">Decode Base64 -> Teks</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-700">Hasil Konversi</label>
+                            <button onclick="copyToClipboard('base64Output')" class="text-xs text-blue-600 hover:underline"><i class="fa-solid fa-copy mr-1"></i>Salin</button>
+                        </div>
+                        <textarea id="base64Output" rows="7" readonly 
+                            class="w-full p-3 font-mono text-xs border border-slate-200 bg-slate-50 text-slate-700 rounded-xl outline-none"
+                            placeholder="Hasil konversi akan tampil di sini..."></textarea>
+                    </div>
+                </div>
+
+                <!-- File to Base64 -->
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Atau Upload Berkas/Gambar -> Data URI Base64</label>
+                    <input type="file" id="base64FileInput" onchange="fileToBase64(event)" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <div id="filePreviewContainer" class="mt-3 hidden">
+                        <p class="text-[11px] text-slate-500 mb-1">Preview Gambar (jika file gambar):</p>
+                        <img id="base64ImagePreview" class="max-h-32 rounded-lg border border-slate-200 shadow-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TOOL 3: URL / TEXT SLUG GENERATOR ================= -->
+        <div id="tool-slug" class="tool-content space-y-4 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base">URL / Text Slug Generator</h2>
+                    <p class="text-xs text-slate-500">Ubah judul artikel atau teks biasa menjadi format URL SEO friendly secara otomatis.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Judul Artikel / Teks Input</label>
+                        <input type="text" id="slugInput" oninput="generateSlug()" 
+                            class="w-full p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            placeholder="Contoh: Cara Membuat Chatbot RAG Menggunakan Django dan LLM 2026!">
+                    </div>
+
+                    <!-- Options -->
+                    <div class="flex flex-wrap gap-4 text-xs font-medium text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <span>Pemisah:</span>
+                            <select id="slugSeparator" onchange="generateSlug()" class="p-1 rounded border border-slate-300 text-xs outline-none">
+                                <option value="-">Strip / Dash (-)</option>
+                                <option value="_">Garis Bawah / Underscore (_)</option>
+                            </select>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="slugLowercase" checked onchange="generateSlug()" class="rounded text-blue-600 focus:ring-blue-500">
+                            Paksa Huruf Kecil (Lowercase)
+                        </label>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Hasil Slug SEO</label>
+                            <button onclick="copyToClipboard('slugOutput')" class="text-xs text-blue-600 font-bold hover:underline">
+                                <i class="fa-solid fa-copy mr-1"></i>Salin Slug
+                            </button>
+                        </div>
+                        <input type="text" id="slugOutput" readonly 
+                            class="w-full p-3 font-mono text-sm border border-slate-200 bg-slate-100 text-blue-700 font-semibold rounded-xl outline-none">
+                    </div>
+
+                    <!-- SEO Preview Box -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pratinjau URL Website:</span>
+                        <p class="text-xs font-mono text-slate-600 truncate">
+                            https://websiteanda.com/blog/<span id="slugPreview" class="text-blue-600 font-bold">cara-membuat-chatbot-rag-menggunakan-django-dan-llm-2026</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TOOL 4: HASH GENERATOR ================= -->
+        <div id="tool-hash" class="tool-content space-y-4 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-5">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base">Hash Generator</h2>
+                    <p class="text-xs text-slate-500">Generate string hash kripotgrafi (MD5, SHA-1, SHA-256, SHA-512) secara langsung.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Teks Input</label>
+                    <textarea id="hashInput" rows="3" oninput="generateHashes()" 
+                        class="w-full p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                        placeholder="Ketik teks yang ingin di-hash di sini..."></textarea>
+                </div>
+
+                <div class="flex items-center gap-2 text-xs text-slate-600">
+                    <input type="checkbox" id="hashUppercase" onchange="generateHashes()" class="rounded text-blue-600">
+                    <label for="hashUppercase" class="cursor-pointer">Gunakan Huruf Kapital (Uppercase)</label>
+                </div>
+
+                <!-- List Hashes -->
+                <div class="space-y-3 pt-2">
+                    <!-- MD5 -->
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="font-bold text-slate-700">MD5</span>
+                            <button onclick="copyToClipboard('hashMD5')" class="text-blue-600 hover:underline text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin</button>
+                        </div>
+                        <input type="text" id="hashMD5" readonly class="w-full p-2.5 font-mono text-xs border border-slate-200 bg-slate-50 rounded-xl text-slate-700 outline-none">
+                    </div>
+
+                    <!-- SHA-1 -->
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="font-bold text-slate-700">SHA-1</span>
+                            <button onclick="copyToClipboard('hashSHA1')" class="text-blue-600 hover:underline text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin</button>
+                        </div>
+                        <input type="text" id="hashSHA1" readonly class="w-full p-2.5 font-mono text-xs border border-slate-200 bg-slate-50 rounded-xl text-slate-700 outline-none">
+                    </div>
+
+                    <!-- SHA-256 -->
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="font-bold text-slate-700">SHA-256</span>
+                            <button onclick="copyToClipboard('hashSHA256')" class="text-blue-600 hover:underline text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin</button>
+                        </div>
+                        <input type="text" id="hashSHA256" readonly class="w-full p-2.5 font-mono text-xs border border-slate-200 bg-slate-50 rounded-xl text-slate-700 outline-none">
+                    </div>
+
+                    <!-- SHA-512 -->
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="font-bold text-slate-700">SHA-512</span>
+                            <button onclick="copyToClipboard('hashSHA512')" class="text-blue-600 hover:underline text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin</button>
+                        </div>
+                        <input type="text" id="hashSHA512" readonly class="w-full p-2.5 font-mono text-xs border border-slate-200 bg-slate-50 rounded-xl text-slate-700 outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-10">
+        Rumah Tools &copy; 2026 - Developer & Text Utilities
+    </footer>
+
+<script>
+    // ================= TAB SWITCHER =================
+    function switchTool(toolId) {
+        document.querySelectorAll('.tool-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = 'tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900';
+        });
+
+        document.getElementById(`tool-${toolId}`).classList.remove('hidden');
+        document.getElementById(`tab-${toolId}`).className = 'tab-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-blue-600 shadow-sm';
+    }
+
+    // ================= TOOL 1: JSON FORMATTER & VALIDATOR =================
+    function formatJSON(indent) {
+        const input = document.getElementById('jsonInput').value.trim();
+        const statusBox = document.getElementById('jsonStatus');
+        const statusMsg = document.getElementById('jsonStatusMsg');
+
+        if (!input) {
+            statusBox.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(input);
+            document.getElementById('jsonInput').value = JSON.stringify(parsed, null, indent);
+            statusBox.className = "p-3 rounded-xl text-xs font-semibold mb-3 flex items-center justify-between bg-emerald-50 text-emerald-700 border border-emerald-200";
+            statusMsg.innerHTML = '<i class="fa-solid fa-circle-check mr-2"></i> JSON Valid & Berhasil Diformat!';
+            statusBox.classList.remove('hidden');
+        } catch (err) {
+            statusBox.className = "p-3 rounded-xl text-xs font-semibold mb-3 flex items-center justify-between bg-red-50 text-red-700 border border-red-200";
+            statusMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-2"></i> JSON Tidak Valid: ${err.message}`;
+            statusBox.classList.remove('hidden');
+        }
+    }
+
+    function minifyJSON() {
+        const input = document.getElementById('jsonInput').value.trim();
+        if (!input) return;
+        try {
+            const parsed = JSON.parse(input);
+            document.getElementById('jsonInput').value = JSON.stringify(parsed);
+            formatJSON(0);
+        } catch (err) {
+            formatJSON(2);
+        }
+    }
+
+    function clearJSON() {
+        document.getElementById('jsonInput').value = '';
+        document.getElementById('jsonStatus').classList.add('hidden');
+    }
+
+    function copyJSON() {
+        copyToClipboard('jsonInput');
+    }
+
+    // ================= TOOL 2: BASE64 ENCODER / DECODER =================
+    function processBase64(mode) {
+        const input = document.getElementById('base64Input').value;
+        const output = document.getElementById('base64Output');
+
+        try {
+            if (mode === 'encode') {
+                // Support UTF-8 encoding
+                output.value = btoa(unescape(encodeURIComponent(input)));
+            } else {
+                // Support UTF-8 decoding
+                output.value = decodeURIComponent(escape(atob(input)));
+            }
+        } catch (e) {
+            output.value = "[Error] String tidak valid untuk di-decode dari Base64.";
+        }
+    }
+
+    function fileToBase64(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const base64String = evt.target.result;
+            document.getElementById('base64Output').value = base64String;
+
+            const previewCont = document.getElementById('filePreviewContainer');
+            const previewImg = document.getElementById('base64ImagePreview');
+
+            if (file.type.startsWith('image/')) {
+                previewImg.src = base64String;
+                previewCont.classList.remove('hidden');
+            } else {
+                previewCont.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ================= TOOL 3: SLUG GENERATOR =================
+    function generateSlug() {
+        const text = document.getElementById('slugInput').value;
+        const separator = document.getElementById('slugSeparator').value;
+        const isLowercase = document.getElementById('slugLowercase').checked;
+
+        let slug = text
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Hapus karakter aksen/diakritik
+            .replace(/[^a-zA-Z0-9\s-_]/g, '') // Hapus karakter khusus
+            .trim();
+
+        if (isLowercase) slug = slug.toLowerCase();
+
+        slug = slug.replace(/[\s-_]+/g, separator);
+
+        document.getElementById('slugOutput').value = slug;
+        document.getElementById('slugPreview').innerText = slug || 'contoh-slug-seo';
+    }
+
+    // ================= TOOL 4: HASH GENERATOR =================
+    function generateHashes() {
+        const text = document.getElementById('hashInput').value;
+        const isUppercase = document.getElementById('hashUppercase').checked;
+
+        if (!text) {
+            document.getElementById('hashMD5').value = '';
+            document.getElementById('hashSHA1').value = '';
+            document.getElementById('hashSHA256').value = '';
+            document.getElementById('hashSHA512').value = '';
+            return;
+        }
+
+        let md5 = CryptoJS.MD5(text).toString();
+        let sha1 = CryptoJS.SHA1(text).toString();
+        let sha256 = CryptoJS.SHA256(text).toString();
+        let sha512 = CryptoJS.SHA512(text).toString();
+
+        if (isUppercase) {
+            md5 = md5.toUpperCase();
+            sha1 = sha1.toUpperCase();
+            sha256 = sha256.toUpperCase();
+            sha512 = sha512.toUpperCase();
+        }
+
+        document.getElementById('hashMD5').value = md5;
+        document.getElementById('hashSHA1').value = sha1;
+        document.getElementById('hashSHA256').value = sha256;
+        document.getElementById('hashSHA512').value = sha512;
+    }
+
+    // ================= UTILITY FUNCTIONS =================
+    function copyToClipboard(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el || !el.value) return;
+
+        el.select();
+        navigator.clipboard.writeText(el.value).then(() => {
+            alert('Berhasil disalin ke clipboard!');
+        });
+    }
+
+    // Initial Trigger untuk Slug contoh
+    document.getElementById('slugInput').value = "Cara Membuat Chatbot RAG Menggunakan Django dan LLM 2026!";
+    generateSlug();
+</script>
+</body>
+</html>

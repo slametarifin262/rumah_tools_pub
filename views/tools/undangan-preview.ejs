@@ -1,0 +1,143 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= locals.title ? title : 'Undangan Pernikahan' %></title>
+    
+    <!-- Integrasi Tailwind & FontAwesome (Pastikan link ini sesuai dengan struktur Anda) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Font Elegan -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-cursive { font-family: 'Great Vibes', cursive; }
+        
+        /* Animasi rotasi piringan hitam untuk ikon musik */
+        .spin-slow { animation: spin 4s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Animasi masuk secara halus (Fade In Up) */
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .delay-100 { animation-delay: 0.2s; }
+        .delay-200 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body class="bg-[#fcf9f2] min-h-screen flex items-center justify-center py-10 px-4 relative">
+
+    <!-- Audio Element (Ganti src dengan URL MP3 lagu pernikahan pilihan Anda) -->
+    <audio id="bg-music" loop>
+        <!-- Contoh lagu instrumental bebas hak cipta sebagai placeholder -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b8f79fbc.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Tombol Musik Melayang -->
+    <button id="music-btn" class="fixed bottom-6 right-6 z-50 bg-white/80 backdrop-blur-sm w-12 h-12 rounded-full shadow-xl border border-pink-100 text-pink-600 flex items-center justify-center transition-transform hover:scale-110">
+        <i id="music-icon" class="fa-solid fa-music"></i>
+    </button>
+
+    <!-- Card Undangan -->
+    <div class="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden text-center relative border border-orange-50">
+        
+        <!-- Ilustrasi Bunga Atas (Hero Image) -->
+        <div class="relative h-64 bg-gray-100 w-full overflow-hidden fade-in-up">
+            <!-- Ganti URL ini dengan ilustrasi bunga PNG atau foto prewedding -->
+            <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop" 
+                 alt="Wedding Floral" 
+                 class="w-full h-full object-cover opacity-90">
+            <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+        </div>
+
+        <div class="px-8 pb-12 pt-4 relative z-10 -mt-10 bg-white rounded-t-[3rem]">
+            
+            <p class="text-pink-500 tracking-[0.3em] text-xs uppercase font-semibold mb-6 fade-in-up delay-100">
+                The Wedding Of
+            </p>
+
+            <!-- Nama Mempelai dengan Font Cursive -->
+            <h1 class="font-cursive text-5xl md:text-6xl text-gray-800 mb-6 capitalize leading-tight fade-in-up delay-100">
+                <%= names %>
+            </h1>
+
+            <p class="text-gray-500 text-sm mb-6 leading-relaxed font-serif italic fade-in-up delay-200">
+                "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya..."
+            </p>
+
+            <!-- Tanggal Acara -->
+            <div class="inline-block border-y border-pink-200 py-4 mb-8 w-3/4 fade-in-up delay-200">
+                <p class="font-serif text-xl text-gray-800 font-semibold uppercase tracking-widest"><%= event_date %></p>
+            </div>
+
+            <button class="bg-pink-600 text-white px-8 py-3 rounded-full text-sm font-medium shadow-lg hover:bg-pink-700 transition-colors fade-in-up delay-200 w-full">
+                <i class="fa-regular fa-calendar-check mr-2"></i> Simpan Tanggal
+            </button>
+        </div>
+
+        <!-- Tombol Aksi Sistem (Hanya muncul saat preview, sembunyi untuk tamu) -->
+        <% if (!locals.is_guest) { %>
+            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-between items-center">
+                <a href="/tools/undangan-digital" class="text-sm text-gray-500 hover:text-gray-800 font-medium">
+                    &larr; Edit Kembali
+                </a>
+                
+                <!-- Form Simpan & Buat Link -->
+                <form action="/api/undangan/save" method="POST" class="inline m-0">
+                    <input type="hidden" name="names" value="<%= names %>">
+                    <input type="hidden" name="event_date" value="<%= raw_date %>">
+                    <button type="submit" class="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 shadow-md transition-all">
+                        Bagikan Link &rarr;
+                    </button>
+                </form>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Script Pemutar Musik -->
+    <script>
+        const musicBtn = document.getElementById('music-btn');
+        const bgMusic = document.getElementById('bg-music');
+        const musicIcon = document.getElementById('music-icon');
+        let isPlaying = false;
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                bgMusic.pause();
+                musicIcon.classList.remove('fa-compact-disc', 'spin-slow');
+                musicIcon.classList.add('fa-music');
+                musicBtn.classList.remove('bg-pink-100');
+            } else {
+                bgMusic.play();
+                musicIcon.classList.remove('fa-music');
+                musicIcon.classList.add('fa-compact-disc', 'spin-slow');
+                musicBtn.classList.add('bg-pink-100');
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // Opsional: Autoplay mencoba berjalan jika user sudah berinteraksi dengan browser
+        window.addEventListener('click', () => {
+            if(!isPlaying) {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicIcon.classList.remove('fa-music');
+                    musicIcon.classList.add('fa-compact-disc', 'spin-slow');
+                }).catch(e => console.log("Autoplay dicegah oleh browser"));
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
+
+<%- include('../partials/footer') %>

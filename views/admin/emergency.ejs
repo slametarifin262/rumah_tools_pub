@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Kontak Darurat - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+    <!-- Navbar Admin -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <a href="/" class="text-slate-500 hover:text-slate-800"><i class="fa-solid fa-house"></i></a>
+            <h1 class="font-bold text-slate-800 text-lg">Kelola Kontak Darurat</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs text-slate-500">Halo, <b><%= user ? user.username || user.name : 'Admin' %></b></span>
+            <a href="/logout" class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6 space-y-6">
+
+        <!-- Form Tambah Kontak Baru -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <h2 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-blue-600"></i> Tambah Kontak Darurat Baru
+            </h2>
+             <!-- Form Tambah Kontak Baru -->
+            <form action="/admin/emergency/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Nama Instansi -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Instansi / Armada</label>
+                    <input type="text" name="name" placeholder="Contoh: Mobil Siaga Desa Menganti" required
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Kategori (Sesuai Nilai ENUM MySQL) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+                    <select name="category" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                        <option value="mobil_desa">Mobil Desa</option>
+                        <option value="ormas">Ormas / Relawan</option>
+                        <option value="puskesmas">Puskesmas</option>
+                        <option value="rumah_sakit">Rumah Sakit</option>
+                        <option value="damkar">Pemadam Kebakaran</option>
+                        <option value="polisi">Kepolisian</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                </div>
+
+                <!-- Tier Level -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tier Level</label>
+                    <select name="tier_level" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                        <option value="1">Tier 1 (Desa / Ormas / RS / Puskesmas)</option>
+                        <option value="2">Tier 2 (Polsek / Damkar)</option>
+                        <option value="3">Tier 3 (Polres / BPBD / Lainnya)</option>
+                    </select>
+                </div>
+
+                <!-- Nomor Telepon -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Telepon</label>
+                    <input type="text" name="phone_number" placeholder="0282xxxx / 08xxxx" required
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Nomor WhatsApp (Opsional) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp (Opsional)</label>
+                    <input type="text" name="whatsapp_number" placeholder="08xxxxxxxx"
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Latitude -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Latitude</label>
+                    <input type="text" name="latitude" placeholder="-7.71830000" required
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Longitude -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Longitude</label>
+                    <input type="text" name="longitude" placeholder="109.01590000" required
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Alamat -->
+                <div class="md:col-span-2 lg:col-span-4">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Lengkap</label>
+                    <input type="text" name="address" placeholder="Jl. Raya Desa No. 1..."
+                        class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-blue-500">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="md:col-span-2 lg:col-span-4 flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition">
+                        Simpan Kontak
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabel Daftar Kontak -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h3 class="font-bold text-slate-800 text-sm">Daftar Kontak Terdaftar</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 text-[11px] uppercase font-semibold text-slate-500 border-b border-slate-200">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Nama</th>
+                            <th class="p-4">Kategori</th>
+                            <th class="p-4">Telepon</th>
+                            <th class="p-4">Koordinat</th>
+                            <th class="p-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs">
+                        <% if (typeof contacts !== 'undefined' && contacts.length > 0) { %>
+                            <% contacts.forEach((item, index) => { %>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 text-slate-400"><%= index + 1 %></td>
+                                    <td class="p-4 font-semibold text-slate-800"><%= item.name %></td>
+                                    <td class="p-4">
+                                        <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
+                                            <%= item.category ? item.category.replace('_', ' ') : '-' %>
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-slate-600"><%= item.phone || item.phone_number %></td>
+                                    <td class="p-4 text-slate-400"><%= item.latitude %>, <%= item.longitude %></td>
+                                    <td class="p-4 text-center">
+                                        <form action="/admin/emergency/delete/<%= item.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kontak ini?')" class="inline">
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50">
+                                                <i class="fa-solid fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-slate-400">Belum ada data kontak darurat.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

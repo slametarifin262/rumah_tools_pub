@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .tree-kategori { cursor: pointer; user-select: none; }
+        .tree-kategori:hover { color: #0d6efd; }
+        .tree-sub { padding-left: 1.5rem; }
+        .tree-sub-item { cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+        .tree-sub-item:hover, .tree-sub-item.active { background: #e7f1ff; color: #0d6efd; font-weight: 600; }
+        .file-size-badge { font-size: 11px; }
+    </style>
+</head>
+<body class="bg-light py-4">
+
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="bi bi-archive text-primary me-2"></i>Repositori Aplikasi</h3>
+                <p class="text-muted small mb-0">Dokumen, source code, konfigurasi, backup, dan riwayat pengembangan aplikasi. File tersimpan terenkripsi.</p>
+            </div>
+            <a href="/dashboard/api-key" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali ke Dashboard</a>
+        </div>
+
+        <div class="row g-4">
+            <!-- Sidebar: Struktur Kategori -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-folder2-open me-2 text-primary"></i>Struktur Repositori
+                    </div>
+                    <div class="card-body p-2" id="treeContainer" style="max-height: 70vh; overflow-y: auto;">
+                        <div class="tree-sub-item active fw-bold" onclick="pilihKategori(null, null, this)">
+                            <i class="bi bi-grid me-1"></i> Semua File
+                        </div>
+                        <% struktur.forEach(function(k) { %>
+                            <div class="mt-2">
+                                <div class="tree-kategori fw-bold small text-dark py-1" onclick="toggleKategori(this)">
+                                    <i class="bi bi-chevron-right me-1 toggle-icon"></i>
+                                    <i class="bi bi-folder-fill text-warning me-1"></i><%= k.kategori %>
+                                </div>
+                                <div class="tree-sub" style="display:none;">
+                                    <% k.sub.forEach(function(s) { %>
+                                        <div class="tree-sub-item small" onclick="pilihKategori('<%= k.kategori %>', '<%= s %>', this)">
+                                            <i class="bi bi-file-earmark me-1"></i><%= s %>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konten: Pencarian, Upload, Daftar File -->
+            <div class="col-md-9">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Cari nama file atau deskripsi..." onkeyup="handleSearchKeyup(event)">
+                                </div>
+                            </div>
+                            <div class="col-md-5 text-end">
+                                <button class="btn btn-outline-secondary btn-sm me-1" onclick="loadFiles()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalUpload"><i class="bi bi-cloud-upload me-1"></i>Unggah File</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0" id="listTitle"><i class="bi bi-list-stars me-2 text-primary"></i>Semua File</h6>
+                        <span class="badge bg-secondary" id="totalFileBadge">0 file</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nama File</th>
+                                        <th>Kategori / Sub-Kategori</th>
+                                        <th>Ukuran</th>
+                                        <th>Diunggah Oleh</th>
+                                        <th>Tanggal</th>
+                                        <th class="text-center" style="width: 100px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fileContainer">
+                                    <tr><td colspan="6" class="text-center py-4 text-muted">Memuat data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload -->
+    <div class="modal fade" id="modalUpload" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formUpload" onsubmit="uploadFile(event)">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Unggah File ke Repositori</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Kategori</label>
+                            <select id="uploadKategori" class="form-select form-select-sm" required onchange="renderSubKategoriOptions()">
+                                <option value="">-- Pilih Kategori --</option>
+                                <% struktur.forEach(function(k) { %>
+                                    <option value="<%= k.kategori %>"><%= k.kategori %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Sub-Kategori</label>
+                            <select id="uploadSubKategori" class="form-select form-select-sm" required>
+                                <option value="">-- Pilih Kategori Dahulu --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Deskripsi (opsional)</label>
+                            <input type="text" id="uploadDeskripsi" class="form-control form-control-sm" placeholder="Contoh: Versi final disetujui Kepala Dinas">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">File</label>
+                            <input type="file" id="uploadFileInput" class="form-control form-control-sm" required>
+                            <div class="form-text">Maks. 30MB. File akan disimpan terenkripsi.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnUploadSubmit">
+                            <i class="bi bi-cloud-upload me-1"></i>Unggah
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const STRUKTUR = <%- JSON.stringify(struktur) %>;
+
+        let currentKategori = null;
+        let currentSub = null;
+        let searchTimer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFiles();
+        });
+
+        function toggleKategori(el) {
+            const subDiv = el.nextElementSibling;
+            const icon = el.querySelector('.toggle-icon');
+            const isOpen = subDiv.style.display !== 'none';
+            subDiv.style.display = isOpen ? 'none' : 'block';
+            icon.classList.toggle('bi-chevron-right', isOpen);
+            icon.classList.toggle('bi-chevron-down', !isOpen);
+        }
+
+        function pilihKategori(kategori, sub, el) {
+            currentKategori = kategori;
+            currentSub = sub;
+
+            document.querySelectorAll('.tree-sub-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+
+            const title = document.getElementById('listTitle');
+            if (!kategori) {
+                title.innerHTML = '<i class="bi bi-list-stars me-2 text-primary"></i>Semua File';
+            } else {
+                title.innerHTML = `<i class="bi bi-list-stars me-2 text-primary"></i>${kategori} &rsaquo; ${sub}`;
+            }
+
+            loadFiles();
+        }
+
+        function handleSearchKeyup(e) {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadFiles(), 350);
+        }
+
+        async function loadFiles() {
+            const tbody = document.getElementById('fileContainer');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Memuat data...</td></tr>';
+
+            try {
+                const params = new URLSearchParams();
+                const q = document.getElementById('searchInput').value.trim();
+                if (q) params.set('q', q);
+                if (currentKategori) params.set('kategori', currentKategori);
+                if (currentSub) params.set('sub_kategori', currentSub);
+
+                const res = await fetch(`/api/v1/repositori?${params.toString()}`);
+                const result = await res.json();
+
+                if (!result.success) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message}</td></tr>`;
+                    return;
+                }
+
+                document.getElementById('totalFileBadge').innerText = `${result.data.length} file`;
+
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada file di sini.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = result.data.map(f => `
+                    <tr>
+                        <td>
+                            <i class="bi bi-file-earmark-text text-secondary me-1"></i>
+                            <strong>${escapeHtml(f.nama_file)}</strong>
+                            ${f.deskripsi ? `<div class="text-muted small">${escapeHtml(f.deskripsi)}</div>` : ''}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">${escapeHtml(f.kategori)}</span><br><span class="badge bg-light text-dark border mt-1">${escapeHtml(f.sub_kategori)}</span></td>
+                        <td><span class="badge bg-secondary file-size-badge">${formatSize(f.file_size)}</span></td>
+                        <td>${escapeHtml(f.uploaded_by_name || '-')}</td>
+                        <td>${new Date(f.created_at).toLocaleDateString('id-ID')}</td>
+                        <td class="text-center">
+                            <a href="/api/v1/repositori/${f.id}/unduh" class="btn btn-sm btn-outline-primary me-1" title="Unduh"><i class="bi bi-download"></i></a>
+                            <button class="btn btn-sm btn-outline-danger" title="Hapus" onclick="hapusFile(${f.id}, '${escapeHtml(f.nama_file).replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal terhubung ke server.</td></tr>';
+            }
+        }
+
+        function renderSubKategoriOptions() {
+            const kategori = document.getElementById('uploadKategori').value;
+            const subSelect = document.getElementById('uploadSubKategori');
+            const found = STRUKTUR.find(k => k.kategori === kategori);
+
+            if (!found) {
+                subSelect.innerHTML = '<option value="">-- Pilih Kategori Dahulu --</option>';
+                return;
+            }
+
+            subSelect.innerHTML = found.sub.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        async function uploadFile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnUploadSubmit');
+            const fileInput = document.getElementById('uploadFileInput');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                return alert('Pilih file terlebih dahulu.');
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('kategori', document.getElementById('uploadKategori').value);
+            formData.append('sub_kategori', document.getElementById('uploadSubKategori').value);
+            formData.append('deskripsi', document.getElementById('uploadDeskripsi').value);
+            formData.append('_csrf', csrfToken);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Mengunggah...';
+
+            try {
+                const res = await fetch('/api/v1/repositori', {
+                    method: 'POST',
+                    headers: { 'x-csrf-token': csrfToken },
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalUpload')).hide();
+                    document.getElementById('formUpload').reset();
+                    loadFiles();
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan saat mengunggah file.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i>Unggah';
+            }
+        }
+
+        async function hapusFile(id, nama) {
+            if (!confirm(`Hapus file "${nama}" dari repositori? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+            try {
+                const res = await fetch(`/api/v1/repositori/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'x-csrf-token': csrfToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadFiles();
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan sistem.');
+            }
+        }
+
+        function formatSize(bytes) {
+            if (!bytes) return '-';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+    </script>
+</body>
+</html>

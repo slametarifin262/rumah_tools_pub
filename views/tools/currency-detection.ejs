@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Currency Detection & Terbilang - Rumah Tools</title>
+    <script src="/assets/js/csrf.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-house-laptop text-lg"></i>
+                </div>
+                <span class="font-extrabold text-xl tracking-tight text-slate-900">Rumah<span class="text-blue-600">Tools</span></span>
+            </a>
+            <a href="/" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-2 bg-slate-100 hover:bg-blue-50 px-3 py-2 rounded-xl transition">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Kembali ke Dashboard</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-10 w-full flex-grow">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-semibold mb-3">
+                <i class="fa-solid fa-money-bill-wave"></i> Detector & Converter
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Deteksi Mata Uang & Terbilang Teks</h1>
+            <p class="text-sm text-slate-500 mt-2 max-w-xl mx-auto">Masukkan teks angka dengan simbol mata uang (seperti $ 1000500, Rp 5.500,-, dll) untuk mendeteksi satuan dan mengonversinya ke kalimat terbilang secara otomatis.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-6">
+            <!-- Input Area -->
+            <div>
+                <label for="rawInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Masukkan Teks / Format Mata Uang:</label>
+                <div class="relative">
+                    <input type="text" id="rawInput" placeholder="Contoh: Rp 5.500,- atau $ 1000500 atau 5.500,00" class="w-full px-4 py-3.5 pl-11 text-sm bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-mono text-slate-800">
+                    <i class="fa-solid fa-coins absolute left-4 top-4 text-slate-400"></i>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3 text-[11px]">
+                    <span class="text-slate-400 font-semibold">Coba contoh:</span>
+                    <button type="button" onclick="setSample('Rp 5.500,-')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 transition">Rp 5.500,-</button>
+                    <button type="button" onclick="setSample('$ 1000500')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 transition">$ 1000500</button>
+                    <button type="button" onclick="setSample('rp 5500.00')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 transition">rp 5500.00</button>
+                    <button type="button" onclick="setSample('€ 125.000')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 transition">€ 125.000</button>
+                </div>
+            </div>
+
+            <!-- Hasil Deteksi -->
+            <div id="resultCard" class="hidden border border-blue-100 bg-blue-50/50 rounded-2xl p-5 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Satuan Mata Uang Detected</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span id="detectedSymbol" class="text-xs px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-700">-</span>
+                            <span id="detectedName" class="font-bold text-slate-800 text-sm">Tidak Terdeteksi</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Nominal Bersih (Numeric)</span>
+                        <span id="cleanNumber" class="font-mono font-bold text-slate-800 text-sm mt-1 block">0</span>
+                    </div>
+                </div>
+
+                <!-- Terbilang Output -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm relative">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Hasil Konversi Teks (Terbilang):</span>
+                    <p id="textResult" class="text-sm font-semibold text-blue-900 mt-2 leading-relaxed capitalize">--</p>
+                    <button id="copyBtn" onclick="copyResult()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="copyText">Salin Teks</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        &copy; 2026 Rumah Tools - Platform Layanan Digital
+    </footer>
+
+    <!-- Script Logika Deteksi & Terbilang -->
+    <script>
+        const currencyMap = [
+        // --- MATA UANG G20 & UTAMA ---
+        { regex: /(rp|idr|rupiah)/i, symbol: 'IDR (Rp)', name: 'Rupiah', lang: 'id' },
+        { regex: /(\$|usd|dollar|dolar)/i, symbol: 'USD ($)', name: 'Dolar AS', lang: 'id' },
+        { regex: /(€|eur|euro)/i, symbol: 'EUR (€)', name: 'Euro', lang: 'id' },
+        { regex: /(¥|jpy|yen)/i, symbol: 'JPY (¥)', name: 'Yen Jepang', lang: 'id' },
+        { regex: /(£|gbp|pound|sterlina)/i, symbol: 'GBP (£)', name: 'Poundsterling', lang: 'id' },
+        { regex: /(rmb|cny|cnh|yuan|renminbi)/i, symbol: 'CNY (¥)', name: 'Yuan Tiongkok', lang: 'id' },
+        { regex: /(aud|a\$|dolar australia)/i, symbol: 'AUD (A$)', name: 'Dolar Australia', lang: 'id' },
+        { regex: /(cad|c\$|dolar kanada)/i, symbol: 'CAD (C$)', name: 'Dolar Kanada', lang: 'id' },
+        { regex: /(inr|₹|rupee|rupiyah india)/i, symbol: 'INR (₹)', name: 'Rupee India', lang: 'id' },
+        { regex: /(rub|₽|ruble|rubel)/i, symbol: 'RUB (₽)', name: 'Rubel Rusia', lang: 'id' },
+        { regex: /(brl|r\$|real brasil)/i, symbol: 'BRL (R$)', name: 'Real Brasil', lang: 'id' },
+        { regex: /(zar|rand afrika)/i, symbol: 'ZAR (R)', name: 'Rand Afrika Selatan', lang: 'id' },
+        { regex: /(mxn|dolar meksiko)/i, symbol: 'MXN ($)', name: 'Peso Meksiko', lang: 'id' },
+        { regex: /(try|₺|lira turki)/i, symbol: 'TRY (₺)', name: 'Lira Turki', lang: 'id' },
+        { regex: /(sar|riyal|rial arab)/i, symbol: 'SAR (SR)', name: 'Riyal Arab Saudi', lang: 'id' },
+        { regex: /(krw|₩|won)/i, symbol: 'KRW (₩)', name: 'Won Korea Selatan', lang: 'id' },
+        { regex: /(ars|peso argentina)/i, symbol: 'ARS ($)', name: 'Peso Argentina', lang: 'id' },
+
+        // --- MATA UANG ASIATENGGARA (ASEAN) & ASIA LAINNYA ---
+        { regex: /(sgd|s\$|dolar singapura)/i, symbol: 'SGD (S$)', name: 'Dolar Singapura', lang: 'id' },
+        { regex: /(rm|myr|ringgit)/i, symbol: 'MYR (RM)', name: 'Ringgit Malaysia', lang: 'id' },
+        { regex: /(thb|฿|baht)/i, symbol: 'THB (฿)', name: 'Baht Thailand', lang: 'id' },
+        { regex: /(php|₱|peso filipina)/i, symbol: 'PHP (₱)', name: 'Peso Filipina', lang: 'id' },
+        { regex: /(vnd|₫|dong)/i, symbol: 'VND (₫)', name: 'Dong Vietnam', lang: 'id' },
+        { regex: /(khr|riel kamboja)/i, symbol: 'KHR (៛)', name: 'Riel Kamboja', lang: 'id' },
+        { regex: /(lak|kip laos)/i, symbol: 'LAK (₭)', name: 'Kip Laos', lang: 'id' },
+        { regex: /(mmk|kyat myanmar)/i, symbol: 'MMK (Ks)', name: 'Kyat Myanmar', lang: 'id' },
+        { regex: /(bnd|dolar brunei)/i, symbol: 'BND (B$)', name: 'Dolar Brunei', lang: 'id' },
+        { regex: /(hkd|hk\$|dolar hongkong)/i, symbol: 'HKD (HK$)', name: 'Dolar Hong Kong', lang: 'id' },
+        { regex: /(twd|nt\$|dolar taiwan)/i, symbol: 'TWD (NT$)', name: 'Dolar Taiwan', lang: 'id' },
+        { regex: /(aed|dirham uae|dirham emirat)/i, symbol: 'AED (DH)', name: 'Dirham Uni Emirat Arab', lang: 'id' },
+        { regex: /(qar|riyal qatar)/i, symbol: 'QAR (QR)', name: 'Riyal Qatar', lang: 'id' },
+        { regex: /(kwd|dinar kuwait)/i, symbol: 'KWD (KD)', name: 'Dinar Kuwait', lang: 'id' },
+        { regex: /(pkr|rupee pakistan)/i, symbol: 'PKR (Rs)', name: 'Rupee Pakistan', lang: 'id' },
+        { regex: /(bdt|taka bangladesh)/i, symbol: 'BDT (৳)', name: 'Taka Bangladesh', lang: 'id' },
+        { regex: /(lkr|rupee sri lanka)/i, symbol: 'LKR (Rs)', name: 'Rupee Sri Lanka', lang: 'id' }
+    ];
+
+        document.getElementById('rawInput').addEventListener('input', function() {
+            processCurrencyDetection(this.value);
+        });
+
+        function setSample(val) {
+            document.getElementById('rawInput').value = val;
+            processCurrencyDetection(val);
+        }
+
+        function processCurrencyDetection(input) {
+            const resultCard = document.getElementById('resultCard');
+            if (!input.trim()) {
+                resultCard.classList.add('hidden');
+                return;
+            }
+
+            resultCard.classList.remove('hidden');
+
+            // 1. Deteksi Mata Uang
+            let detected = { symbol: 'RAW', name: 'Tanpa Satuan', lang: 'id' };
+            for (let c of currencyMap) {
+                if (c.regex.test(input)) {
+                    detected = c;
+                    break;
+                }
+            }
+
+            // 2. Pembersihan Angka (Cleaning)
+            // Hilangkan kata mata uang, strip, titik/koma desimal yang tidak perlu
+            let cleanStr = input.replace(/[a-zA-Z\$\€\¥\£\s\,-]/g, '');
+            
+            // Penanganan format ribuan dan desimal (misal: 5.500 atau 5,500)
+            if (cleanStr.includes('.') && cleanStr.includes(',')) {
+                cleanStr = cleanStr.replace(/\./g, '').replace(',', '.');
+            } else if (cleanStr.includes('.')) {
+                // Asumsi titik sebagai ribuan jika diikuti 3 digit
+                let parts = cleanStr.split('.');
+                if (parts.length > 1 && parts[parts.length - 1].length !== 2) {
+                    cleanStr = cleanStr.replace(/\./g, '');
+                }
+            }
+
+            const numValue = parseFloat(cleanStr);
+
+            document.getElementById('detectedSymbol').innerText = detected.symbol;
+            document.getElementById('detectedName').innerText = detected.name;
+
+            if (isNaN(numValue)) {
+                document.getElementById('cleanNumber').innerText = "Angka tidak valid";
+                document.getElementById('textResult').innerText = "Format angka tidak dapat dibaca";
+                return;
+            }
+
+            document.getElementById('cleanNumber').innerText = new Intl.NumberFormat('id-ID').format(numValue);
+
+            // 3. Konversi ke Terbilang Bahasa Indonesia
+            let terbilangText = terbilangIndonesia(numValue);
+            if (detected.name !== 'Tanpa Satuan') {
+                terbilangText += ' ' + detected.name;
+            }
+
+            document.getElementById('textResult').innerText = terbilangText;
+        }
+
+        // Algoritma Terbilang Indonesia
+        function terbilangIndonesia(angka) {
+            const satuan = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+            angka = Math.floor(Math.abs(angka));
+
+            if (angka < 12) return satuan[angka];
+            if (angka < 20) return terbilangIndonesia(angka - 10) + " belas";
+            if (angka < 100) return terbilangIndonesia(Math.floor(angka / 10)) + " puluh " + satuan[angka % 10];
+            if (angka < 200) return "seratus " + terbilangIndonesia(angka - 100);
+            if (angka < 1000) return terbilangIndonesia(Math.floor(angka / 100)) + " ratus " + terbilangIndonesia(angka % 100);
+            if (angka < 2000) return "seribu " + terbilangIndonesia(angka - 1000);
+            if (angka < 1000000) return terbilangIndonesia(Math.floor(angka / 1000)) + " ribu " + terbilangIndonesia(angka % 1000);
+            if (angka < 1000000000) return terbilangIndonesia(Math.floor(angka / 1000000)) + " juta " + terbilangIndonesia(angka % 1000000);
+            if (angka < 1000000000000) return terbilangIndonesia(Math.floor(angka / 1000000000)) + " milyar " + terbilangIndonesia(angka % 1000000000);
+            return terbilangIndonesia(Math.floor(angka / 1000000000000)) + " triliun " + terbilangIndonesia(angka % 1000000000000);
+        }
+
+        function copyResult() {
+            const text = document.getElementById('textResult').innerText;
+            if (window.trackFeature) trackFeature('currency-detection');
+            navigator.clipboard.writeText(text).then(() => {
+                document.getElementById('copyText').innerText = "Tersalin!";
+                setTimeout(() => {
+                    document.getElementById('copyText').innerText = "Salin Teks";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nota #<%= trx.id %></title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            width: 58mm; /* Sesuaikan ke 80mm jika menggunakan printer besar */
+            margin: 0 auto;
+            padding: 5px;
+            font-size: 11px;
+            color: #000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .fw-bold { font-weight: bold; }
+        .line { border-bottom: 1px dashed #000; margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        td { vertical-align: top; }
+        .logo { max-width: 50px; height: auto; margin-bottom: 5px; }
+        .qr-code { width: 90px; height: 90px; margin: 5px auto; }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="text-center">
+        <% if (trx.logo_url) { %>
+            <img src="<%= trx.logo_url %>" alt="Logo" class="logo"><br>
+        <% } %>
+        <h3 style="margin: 0;" class="fw-bold"><%= trx.nama_toko || 'TOKO SAYA' %></h3>
+        <p style="margin: 2px 0;"><%= trx.alamat_toko || 'Alamat Toko' %></p>
+        <p style="margin: 2px 0;">Telp: <%= trx.hp_toko || '-' %></p>
+        <% if (trx.email_toko) { %>
+            <p style="margin: 2px 0;">Email: <%= trx.email_toko %></p>
+        <% } %>
+    </div>
+
+    <div class="line"></div>
+
+    <div>
+        <p style="margin: 2px 0;">No. Nota : <strong>#<%= trx.id %></strong></p>
+        <p style="margin: 2px 0;">Tgl/Waktu: <%= new Date(trx.created_at).toLocaleString('id-ID') %></p>
+        <p style="margin: 2px 0;">Kasir    : <strong><%= trx.nama_kasir || 'Kasir' %></strong></p>
+    </div>
+
+    <div class="line"></div>
+
+    <!-- Items Belanja -->
+    <table>
+        <% items.forEach(item => { %>
+            <tr>
+                <td colspan="2" class="fw-bold"><%= item.nama_produk %></td>
+            </tr>
+            <tr>
+                <td><%= item.qty %> <%= item.satuan %> x <%= Number(item.harga).toLocaleString('id-ID') %></td>
+                <td class="text-right">Rp <%= Number(item.subtotal).toLocaleString('id-ID') %></td>
+            </tr>
+        <% }); %>
+    </table>
+
+    <div class="line"></div>
+
+    <!-- Rincian Pembayaran -->
+    <table>
+        <tr>
+            <td class="fw-bold">TOTAL</td>
+            <td class="text-right fw-bold">Rp <%= Number(trx.total_harga).toLocaleString('id-ID') %></td>
+        </tr>
+        <tr>
+            <td>Metode Bayar</td>
+            <td class="text-right"><%= trx.ket_bayar %></td>
+        </tr>
+        <% if (trx.ket_bayar === 'Tunai') { %>
+        <tr>
+            <td>Bayar (Cash)</td>
+            <td class="text-right">Rp <%= Number(trx.bayar || 0).toLocaleString('id-ID') %></td>
+        </tr>
+        <tr>
+            <td>Kembali</td>
+            <td class="text-right">Rp <%= Number(trx.kembali || 0).toLocaleString('id-ID') %></td>
+        </tr>
+        <% } %>
+    </table>
+
+    <div class="line"></div>
+
+    <!-- QR Code Transaksi Mandiri Pembeli -->
+    <div class="text-center">
+        <img src="<%= qrCodeUrl %>" alt="QR Code Nota" class="qr-code">
+        <p style="margin: 0; font-size: 9px;">Scan untuk verifikasi struk digital</p>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="text-center">
+        <p style="margin: 4px 0;" class="fw-bold">-- Terima Kasih --</p>
+        <p style="margin: 0; font-size: 9px;">Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
+    </div>
+
+    <div class="no-print" style="margin-top: 15px; text-align: center;">
+        <button onclick="window.print()">Cetak Ulang</button>
+        <button onclick="window.close()">Tutup</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

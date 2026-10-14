@@ -1,0 +1,259 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<style>
+a,h2,.fc-timegrid-slot-label-cushion,.fc-scrollgrid-shrink-cushion,#categoryFilter{color:#000;}
+</style>
+
+<!-- 1. CDN FULLCALENDAR V6 & MULTIMONTH PLUGIN (TAHUNAN) -->
+<!-- 1. Muat FullCalendar Bundle Utama (Versi 6.1.10) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<!-- 2. Muat Plugin MultiMonth (Versi harus SAMA PERSIS yaitu 6.1.10) -->
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/multimonth@6.1.10/index.global.min.js"></script>
+
+<!-- 3. Baru Muat File Bahasa Indonesia -->
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/id.global.min.js"></script>
+
+<main class="py-8 bg-gray-50 min-h-screen">
+    <!-- Pembungkus Utama (Lebar 3/4 Halaman) -->
+    <div class="w-full lg:w-3/4 max-w-5xl mx-auto px-4">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            
+            <!-- Header Judul -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Kalender Kerja & Peringatan Hari Besar</h1>
+                    <p class="text-sm text-gray-500 mt-1">Pemerintah Kabupaten Cilacap & Instansi Daerah</p>
+                </div>
+                <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
+                    <button onclick="openModal()" class="bg-amber-800 hover:bg-amber-900 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm">
+                        + Tambah Agenda
+                    </button>
+                <% } %>
+            </div>
+
+            <!-- Filter Dropdown Kategori -->
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                    Filter Kategori Peringatan:
+                </label>
+                <select id="categoryFilter" class="w-full sm:w-80 p-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-amber-800 focus:border-amber-800 outline-none transition">
+                    <option value="ALL">Semua Kelompok Peringatan</option>
+                    <option value="NASIONAL">🇮🇩 Nasional & Kenegaraan</option>
+                    <option value="INSTITUSI">🏛️ HUT / Lembaga Negara</option>
+                    <option value="DAERAH">🏞️ Daerah (Cilacap & Jateng)</option>
+                    <option value="ASN">👔 ASN & Pemerintahan</option>
+                    <option value="KETENAGAKERJAAN">👷 Ketenagakerjaan</option>
+                    <option value="PROFESI">🧑‍💼 Profesi & Pekerjaan</option>
+                    <option value="LINGKUNGAN">🌱 Lingkungan & SDA</option>
+                    <option value="PERTANIAN">🌾 Pertanian, Kelautan & Perikanan</option>
+                    <option value="SOSIAL">👨‍👩‍👧‍👦 Sosial & Keluarga</option>
+                    <option value="KESEHATAN">🏥 Kesehatan</option>
+                    <option value="PENDIDIKAN">🎓 Pendidikan & Literasi</option>
+                    <option value="INTERNASIONAL">🌐 Internasional / PBB</option>
+                    <option value="KEAGAMAAN">🕌 Keagamaan</option>
+                    <option value="BUDAYA">🎭 Budaya & Seni</option>
+                    <option value="TEKNOLOGI">💻 Teknologi & Digital</option>
+                </select>
+            </div>
+
+            <!-- Container Tempat Kalender Digambar -->
+            <div id="calendar"></div>
+
+        </div>
+    </div>
+</main>
+
+<!-- 2. STYLING TEMA MONARCH & PERBAIKAN LIST VIEW --> <style>
+    /* ==========================================
+       OVERRIDE KHUSUS TAMPILAN MODE DAFTAR (LIST)
+       ========================================== */
+
+    /* 1. Paksa Latar Belakang Baris dan Sel Menjadi Transparan/Putih */
+    .fc .fc-list-event,
+    .fc .fc-list-event td,
+    .fc .fc-list-event:hover td {
+        background-color: #ffffff !important;
+        border-color: #f1f5f9 !important;
+    }
+
+    /* Hover efek lembut saat kursor diarahkan */
+    .fc .fc-list-event:hover td {
+        background-color: #f8fafc !important;
+    }
+
+    /* 2. Paksa Semua Teks Judul Acara Menjadi Hitam Pekat */
+    .fc .fc-list-event-title,
+    .fc .fc-list-event-title a,
+    .fc .fc-list-event-title .fc-event-title,
+    .fc .fc-list-event-title * {
+        color: #0f172a !important; /* Hitam / Slate-900 */
+        font-weight: 600 !important;
+        text-decoration: none !important;
+    }
+
+    /* 3. Paksa Teks Waktu / Jam Menjadi Dark Gray */
+    .fc .fc-list-event-time,
+    .fc .fc-list-event-time * {
+        color: #475569 !important;
+        font-weight: 500 !important;
+    }
+
+    /* 4. Pertegas Titik Indikator Warna Kategori (Dot) */
+    .fc .fc-list-event-dot {
+        border-width: 5px !important;
+    }
+
+    /* 5. Header Tanggal pada List (misal: "1 Maret 2026") */
+    .fc .fc-list-day-cushion,
+    .fc .fc-list-day-cushion * {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+</style>
+
+<!-- 3. JAVASCRIPT LOGIC FULLCALENDAR -->
+<script>
+    // Pemetaan Warna Kategori
+    const CATEGORY_COLORS = {
+        NASIONAL: '#dc2626',
+        INSTITUSI: '#d97706',
+        DAERAH: '#0284c7',
+        ASN: '#059669',
+        KETENAGAKERJAAN: '#475569',
+        PROFESI: '#9333ea',
+        LINGKUNGAN: '#16a34a',
+        PERTANIAN: '#ca8a04',
+        SOSIAL: '#e11d48',
+        KESEHATAN: '#0891b2',
+        PENDIDIKAN: '#4f46e5',
+        INTERNASIONAL: '#2563eb',
+        KEAGAMAAN: '#15803d',
+        BUDAYA: '#c026d3',
+        TEKNOLOGI: '#0d9488'
+    };
+
+    let calendar;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            displayEventTime: false,
+            height: 'auto',
+            dayMaxEvents: 3,
+
+            // Mengaktifkan Nomor Minggu (Week Numbers) Sesuai Gambar Tema Monarch
+            weekNumbers: true,
+            weekNumberCalculation: 'ISO',
+
+            // Toolbar Lengkap: Hari, Minggu, Bulan, Daftar, dan Tahun
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridDay,timeGridWeek,dayGridMonth,listMonth,multiMonthYear'
+            },
+
+            buttonText: {
+                today: 'Hari ini',
+                timeGridDay: 'Hari',
+                timeGridWeek: 'Minggu',
+                dayGridMonth: 'Bulan',
+                listMonth: 'Daftar',
+                multiMonthYear: 'Tahun'
+            },
+
+            // Tampilan Khusus 12 Bulan (Tahun)
+            views: {
+                multiMonthYear: {
+                    type: 'multiMonth',
+                    duration: { months: 12 },
+                    multiMonthMaxColumns: 3
+                }
+            },
+
+            // Fetch Data Langsung dari Endpoint API Database
+            events: function(fetchInfo, successCallback, failureCallback) {
+                const selectedCat = document.getElementById('categoryFilter') ? document.getElementById('categoryFilter').value : 'ALL';
+
+                fetch('/api/kalender/events')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Format Data & Warna berdasarkan Kategori dari DB
+                        const formattedEvents = data.map(item => {
+                            let rawCats = item.extendedProps ? item.extendedProps.categories : item.categories;
+                            let parsedCats = [];
+
+                            if (typeof rawCats === 'string') {
+                                try {
+                                    parsedCats = JSON.parse(rawCats);
+                                } catch (e) {
+                                    parsedCats = [rawCats];
+                                }
+                            } else if (Array.isArray(rawCats)) {
+                                parsedCats = rawCats;
+                            }
+
+                            let primaryCat = (parsedCats && parsedCats.length > 0) 
+                                ? String(parsedCats[0]).trim().toUpperCase() 
+                                : 'NASIONAL';
+
+                            const color = CATEGORY_COLORS[primaryCat] || '#8b4513';
+
+                            return {
+                                ...item,
+                                backgroundColor: color,
+                                borderColor: color,
+                                textColor: '#ffffff',
+                                extendedProps: {
+                                    ...item.extendedProps,
+                                    categories: parsedCats
+                                }
+                            };
+                        });
+
+                        // Filter Sesuai Dropdown Kategori
+                        let filtered = formattedEvents;
+                        if (selectedCat !== 'ALL') {
+                            filtered = formattedEvents.filter(item => {
+                                const cats = item.extendedProps.categories || [];
+                                return cats.map(c => String(c).toUpperCase()).includes(selectedCat.toUpperCase());
+                            });
+                        }
+
+                        successCallback(filtered);
+                    })
+                    .catch(err => {
+                        console.error("Gagal mengambil data kalender:", err);
+                        failureCallback(err);
+                    });
+            },
+
+            // Format Teks Badge Event
+            eventContent: function(arg) {
+                let titleContainer = document.createElement('div');
+                titleContainer.className = 'w-full truncate px-1 py-0.5 font-medium text-xs text-white';
+                titleContainer.innerText = arg.event.title;
+                titleContainer.title = arg.event.title;
+
+                return { domNodes: [titleContainer] };
+            }
+        });
+
+        calendar.render();
+
+        // Refetch Events saat Filter Kategori Diganti
+        const filterEl = document.getElementById('categoryFilter');
+        if (filterEl) {
+            filterEl.addEventListener('change', function() {
+                calendar.refetchEvents();
+            });
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

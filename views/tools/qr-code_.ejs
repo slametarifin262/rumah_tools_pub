@@ -1,0 +1,510 @@
+<%- include('../partials/header') %>
+
+<%- include('../partials/navbar') %>
+
+<main class="flex-1">
+
+    <!-- HERO -->
+    <section class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white">
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+
+            <a href="/tools"
+               class="inline-flex items-center gap-2 text-sm text-blue-100
+                      hover:text-white transition">
+                ← Kembali ke Semua Tools
+            </a>
+
+            <div class="mt-8 flex items-start gap-5">
+
+                <div class="w-16 h-16 rounded-2xl
+                            bg-white/15 border border-white/20
+                            flex items-center justify-center
+                            text-3xl backdrop-blur">
+                    ▣
+                </div>
+
+                <div>
+
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
+                        QR Code Generator
+                    </h1>
+
+                    <p class="mt-3 text-blue-100 max-w-2xl">
+                        Buat QR Code dari URL, teks, nomor telepon,
+                        email, atau informasi lainnya secara gratis.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- TOOL -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+
+        <div class="grid lg:grid-cols-5 gap-6">
+
+
+            <!-- INPUT -->
+            <div class="lg:col-span-3">
+
+                <div class="bg-white dark:bg-slate-900
+                            border border-slate-200 dark:border-slate-800
+                            rounded-2xl shadow-sm p-6 md:p-8">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+
+                            <h2 class="text-xl font-bold">
+                                Buat QR Code
+                            </h2>
+
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                Masukkan data yang ingin dikonversi.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INPUT -->
+                    <div class="mt-6">
+
+                        <label for="qrText"
+                               class="block text-sm font-semibold mb-2">
+
+                            Teks atau URL
+
+                        </label>
+
+                        <textarea
+                            id="qrText"
+                            rows="6"
+                            maxlength="2000"
+                            placeholder="Contoh: https://example.com"
+                            class="w-full rounded-xl border border-slate-300
+                                   dark:border-slate-700
+                                   bg-white dark:bg-slate-950
+                                   px-4 py-3
+                                   text-slate-800 dark:text-slate-100
+                                   placeholder-slate-400
+                                   focus:outline-none focus:ring-2
+                                   focus:ring-blue-500
+                                   resize-none"></textarea>
+
+                        <div class="mt-2 flex justify-between">
+
+                            <span id="inputError"
+                                  class="text-sm text-red-500 hidden">
+                                Masukkan teks terlebih dahulu.
+                            </span>
+
+                            <span id="charCount"
+                                  class="text-xs text-slate-400 ml-auto">
+                                0 / 2000
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+
+                        <button
+                            id="generateBtn"
+                            class="flex-1 inline-flex items-center
+                                   justify-center gap-2
+                                   px-5 py-3 rounded-xl
+                                   bg-blue-600 text-white
+                                   font-semibold
+                                   hover:bg-blue-700
+                                   active:scale-[0.98]
+                                   transition">
+
+                            <span>Generate QR Code</span>
+
+                        </button>
+
+
+                        <button
+                            id="resetBtn"
+                            class="px-5 py-3 rounded-xl
+                                   border border-slate-300
+                                   dark:border-slate-700
+                                   font-semibold
+                                   hover:bg-slate-100
+                                   dark:hover:bg-slate-800
+                                   transition">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESULT -->
+            <div class="lg:col-span-2">
+
+                <div class="bg-white dark:bg-slate-900
+                            border border-slate-200 dark:border-slate-800
+                            rounded-2xl shadow-sm p-6 md:p-8
+                            h-full">
+
+                    <div class="text-center">
+
+                        <h2 class="text-xl font-bold">
+                            Preview
+                        </h2>
+
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            QR Code Anda akan muncul di sini.
+                        </p>
+
+
+                        <!-- QR AREA -->
+                        <div class="mt-6 flex justify-center">
+
+                            <div id="qrContainer"
+                                 class="w-64 h-64 rounded-2xl
+                                        border-2 border-dashed
+                                        border-slate-300
+                                        dark:border-slate-700
+                                        flex items-center justify-center
+                                        bg-slate-50
+                                        dark:bg-slate-950">
+
+                                <div id="emptyState"
+                                     class="text-center px-6">
+
+                                    <div class="text-4xl mb-3">
+                                        ▣
+                                    </div>
+
+                                    <p class="text-sm text-slate-500
+                                              dark:text-slate-400">
+                                        QR Code belum dibuat
+                                    </p>
+
+                                </div>
+
+                                <canvas
+                                    id="qrCanvas"
+                                    class="hidden max-w-full max-h-full">
+                                </canvas>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ACTIONS -->
+                        <div id="qrActions"
+                             class="hidden mt-6 space-y-3">
+
+                            <button
+                                id="downloadBtn"
+                                class="w-full px-5 py-3 rounded-xl
+                                       bg-emerald-600 text-white
+                                       font-semibold
+                                       hover:bg-emerald-700
+                                       transition">
+
+                                ↓ Download PNG
+
+                            </button>
+
+
+                            <button
+                                id="copyBtn"
+                                class="w-full px-5 py-3 rounded-xl
+                                       border border-slate-300
+                                       dark:border-slate-700
+                                       font-semibold
+                                       hover:bg-slate-100
+                                       dark:hover:bg-slate-800
+                                       transition">
+
+                                Salin Teks
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INFO -->
+        <div class="mt-8 grid md:grid-cols-3 gap-4">
+
+            <div class="p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/30">
+
+                <div class="text-2xl">
+                    ⚡
+                </div>
+
+                <h3 class="mt-3 font-bold">
+                    Cepat
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                    QR Code dibuat langsung di browser.
+                </p>
+
+            </div>
+
+
+            <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30">
+
+                <div class="text-2xl">
+                    🔒
+                </div>
+
+                <h3 class="mt-3 font-bold">
+                    Privat
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                    Data tidak perlu dikirim ke server.
+                </p>
+
+            </div>
+
+
+            <div class="p-5 rounded-2xl bg-violet-50 dark:bg-violet-950/30">
+
+                <div class="text-2xl">
+                    💰
+                </div>
+
+                <h3 class="mt-3 font-bold">
+                    Gratis
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                    Tidak membutuhkan API berbayar.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- QR CODE LIBRARY -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+
+
+<script>
+
+const qrText = document.getElementById('qrText');
+
+const generateBtn = document.getElementById('generateBtn');
+
+const resetBtn = document.getElementById('resetBtn');
+
+const downloadBtn = document.getElementById('downloadBtn');
+
+const copyBtn = document.getElementById('copyBtn');
+
+const qrCanvas = document.getElementById('qrCanvas');
+
+const qrContainer = document.getElementById('qrContainer');
+
+const emptyState = document.getElementById('emptyState');
+
+const qrActions = document.getElementById('qrActions');
+
+const inputError = document.getElementById('inputError');
+
+const charCount = document.getElementById('charCount');
+
+
+/* =========================
+   CHARACTER COUNTER
+========================= */
+
+qrText.addEventListener('input', () => {
+
+    charCount.textContent =
+        `${qrText.value.length} / 2000`;
+
+    inputError.classList.add('hidden');
+
+});
+
+
+/* =========================
+   GENERATE QR
+========================= */
+
+generateBtn.addEventListener('click', generateQR);
+
+
+async function generateQR() {
+
+    const text = qrText.value.trim();
+
+
+    if (!text) {
+
+        inputError.classList.remove('hidden');
+
+        qrText.focus();
+
+        return;
+
+    }
+
+
+    try {
+
+        generateBtn.disabled = true;
+
+        generateBtn.innerHTML = 'Membuat QR Code...';
+
+
+        await QRCode.toCanvas(
+            qrCanvas,
+            text,
+            {
+                width: 240,
+                margin: 2,
+                errorCorrectionLevel: 'M'
+            }
+        );
+
+
+        emptyState.classList.add('hidden');
+
+        qrCanvas.classList.remove('hidden');
+
+        qrActions.classList.remove('hidden');
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert('Gagal membuat QR Code.');
+
+    } finally {
+
+        generateBtn.disabled = false;
+
+        generateBtn.innerHTML =
+            '<span>Generate QR Code</span>';
+
+    }
+
+}
+
+
+/* =========================
+   DOWNLOAD
+========================= */
+
+downloadBtn.addEventListener('click', () => {
+
+    const link = document.createElement('a');
+
+    link.download = 'rumah-tools-qr-code.png';
+
+    link.href = qrCanvas.toDataURL('image/png');
+
+    link.click();
+
+});
+
+
+/* =========================
+   COPY
+========================= */
+
+copyBtn.addEventListener('click', async () => {
+
+    const text = qrText.value.trim();
+
+    if (!text) return;
+
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        const originalText = copyBtn.textContent;
+
+        copyBtn.textContent = '✓ Berhasil Disalin';
+
+        setTimeout(() => {
+
+            copyBtn.textContent = originalText;
+
+        }, 2000);
+
+
+    } catch (error) {
+
+        alert('Tidak dapat menyalin teks.');
+
+    }
+
+});
+
+
+/* =========================
+   RESET
+========================= */
+
+resetBtn.addEventListener('click', () => {
+
+    qrText.value = '';
+
+    charCount.textContent = '0 / 2000';
+
+    inputError.classList.add('hidden');
+
+    qrCanvas.classList.add('hidden');
+
+    emptyState.classList.remove('hidden');
+
+    qrActions.classList.add('hidden');
+
+
+    const context = qrCanvas.getContext('2d');
+
+    context.clearRect(
+        0,
+        0,
+        qrCanvas.width,
+        qrCanvas.height
+    );
+
+});
+
+</script>
+
+
+<%- include('../partials/footer') %>

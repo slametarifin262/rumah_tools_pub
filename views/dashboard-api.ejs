@@ -1,0 +1,143 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+    <%- include('partials/sidebar', { active: 'api' }) %>
+
+    <main class="flex-1 min-w-0">
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">Dashboard Developer & API</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Kelola kredensial akses API dan pantau status autentikasi aplikasi Anda.
+            </p>
+        </div>
+
+        <% if (success) { %>
+        <div class="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 dark:border-emerald-900
+                    bg-emerald-50 dark:bg-emerald-900/20 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+            <span>✅</span>
+            <div><strong>Berhasil!</strong> API Key baru Anda telah berhasil dibuat dan siap digunakan.</div>
+        </div>
+        <% } %>
+
+        <form action="/dashboard/api-key/generate" method="POST" class="mb-6">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white
+                           font-semibold text-sm py-2.5 px-5 rounded-xl transition shadow-sm">
+                <span>🔑</span> Generate API Key Baru
+            </button>
+        </form>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-blue-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Total API Key</div>
+                <div class="text-3xl font-bold mt-1"><%= apiKeys ? apiKeys.length : 0 %></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-emerald-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Status Akun</div>
+                <div class="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">Aktif</div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-amber-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Batas Request</div>
+                <div class="text-3xl font-bold mt-1">100 / 15 Mnt</div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                    shadow-sm mb-6 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                <h2 class="font-bold">Kredensial API Key</h2>
+            </div>
+            <% if (apiKeys && apiKeys.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/60 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
+                        <tr>
+                            <th class="px-5 py-3">API Key</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3">Tanggal Dibuat</th>
+                            <th class="px-5 py-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <% apiKeys.forEach(key => { %>
+                        <tr>
+                            <td class="px-5 py-3">
+                                <code id="key-<%= key.id %>"
+                                      class="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md font-semibold text-slate-700 dark:text-slate-200">
+                                    <%= key.api_key %>
+                                </code>
+                            </td>
+                            <td class="px-5 py-3">
+                                <% if (key.status === 'active') { %>
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700
+                                             dark:bg-emerald-900/30 dark:text-emerald-300 px-2 py-1 rounded-full">Aktif</span>
+                                <% } else { %>
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold bg-red-50 text-red-700
+                                             dark:bg-red-900/30 dark:text-red-300 px-2 py-1 rounded-full">Nonaktif</span>
+                                <% } %>
+                            </td>
+                            <td class="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs">
+                                <%= new Date(key.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) %>
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                <button onclick="copyToClipboard('<%= key.api_key %>', this)"
+                                        class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300
+                                               dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                    Salin
+                                </button>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div class="text-center py-10 px-4">
+                <div class="text-4xl mb-2">🔑</div>
+                <h3 class="font-bold text-slate-600 dark:text-slate-300">Belum ada API Key yang dibuat</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Klik tombol "Generate API Key Baru" di atas untuk membuat kredensial pertama Anda.
+                </p>
+            </div>
+            <% } %>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+            <h2 class="font-bold mb-3">Panduan Integrasi Cepat</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                Gunakan API Key Anda pada setiap permintaan API dengan menyertakannya di
+                <strong>HTTP Header</strong> atau <strong>Query Parameter</strong>:
+            </p>
+
+            <label class="block text-xs font-semibold mb-1">1. Menggunakan Header Request (Direkomendasikan)</label>
+            <pre class="bg-slate-900 text-slate-100 text-xs rounded-xl p-4 mb-4 overflow-x-auto">curl -X GET "http://localhost:3000/api/v1/tools" \
+  -H "x-api-key: YOUR_API_KEY"</pre>
+
+            <label class="block text-xs font-semibold mb-1">2. Menggunakan Query Parameter</label>
+            <pre class="bg-slate-900 text-slate-100 text-xs rounded-xl p-4 overflow-x-auto">GET http://localhost:3000/api/v1/tools?api_key=YOUR_API_KEY</pre>
+        </div>
+
+    </main>
+</div>
+
+<script>
+function copyToClipboard(text, buttonElement) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = buttonElement.innerHTML;
+        buttonElement.innerHTML = 'Tersalin!';
+        buttonElement.classList.add('text-emerald-600');
+        setTimeout(() => {
+            buttonElement.innerHTML = originalHTML;
+            buttonElement.classList.remove('text-emerald-600');
+        }, 2000);
+    }).catch(() => alert('Gagal menyalin teks.'));
+}
+</script>
+
+<%- include('partials/footer') %>

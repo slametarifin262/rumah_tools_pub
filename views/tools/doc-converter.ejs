@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Konversi Dokumen</h2>
+
+        <form id="convertForm" class="space-y-4">
+            <!-- CSRF Token Hidden Input -->
+            <input type="hidden" name="_csrf" id="csrfToken" value="<%= csrfToken %>">
+
+            <!-- Input File -->
+            <div>
+                <label class="block font-semibold text-gray-700 mb-1">Pilih File (DOCX, XLSX, PPTX, PDF):</label>
+                <input type="file" id="fileInput" name="file" required 
+                    class="w-full border border-gray-300 p-2 rounded-lg cursor-pointer bg-gray-50">
+            </div>
+
+            <!-- Pilih Format Tujuan -->
+            <div>
+                <label class="block font-semibold text-gray-700 mb-1">Konversi Ke Format:</label>
+                <select id="targetFormat" name="target_format" class="w-full border border-gray-300 p-2 rounded-lg">
+                    <option value="pdf">PDF (.pdf)</option>
+                    <option value="docx">Word (.docx)</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
+                </select>
+            </div>
+
+            <!-- Tombol Submit -->
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                Konversi & Download
+            </button>
+        </form>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden mt-4 text-center text-blue-600 font-semibold">
+            Sedang mengonversi dokumen, mohon tunggu...
+        </div>
+    </div>
+
+    <script>  
+        document.getElementById('convertForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const fileInput = document.getElementById('fileInput');
+                const targetFormat = document.getElementById('targetFormat').value;
+                const csrfToken = document.getElementById('csrfToken').value;
+                const submitBtn = document.getElementById('submitBtn');
+                const loading = document.getElementById('loading');
+
+                if (!fileInput.files[0]) {
+                    alert('Pilih file terlebih dahulu!');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('target_format', targetFormat);
+
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+                loading.classList.remove('hidden');
+
+                try {
+                    const response = await fetch('/api/v1/tools/convert-document', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-Token': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    // JIKA RESPONS TIDAK OK (SERVER ERROR)
+                    if (!response.ok) {
+                        // Cukup baca teks SATU KALI di sini untuk mencegah 'body stream already read'
+                        const responseText = await response.text();
+                        let errorMessage = 'Gagal melakukan konversi.';
+
+                        try {
+                            const errData = JSON.parse(responseText);
+                            errorMessage = errData.message || errorMessage;
+                        } catch (e) {
+                            // Jika balasan bukan JSON (misal teks biasa atau HTML)
+                            errorMessage = responseText || errorMessage;
+                        }
+
+                        throw new Error(errorMessage);
+                    }
+
+                    // JIKA RESPONS OK (DOKUMEN BERHASIL DIKONVERSI)
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let fileName = `hasil_konversi.${targetFormat}`;
+                    if (contentDisposition && contentDisposition.includes('filename=')) {
+                        fileName = contentDisposition.split('filename=')[1].replace(/"/g, '');
+                    }
+
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50');
+                    loading.classList.add('hidden');
+                }
+            });
+    </script>
+</body>
+</html>

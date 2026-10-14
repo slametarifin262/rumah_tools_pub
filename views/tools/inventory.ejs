@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="bg-light py-4">
+
+    <div class="container-fluid px-4">
+        <!-- Header & Action -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="bi bi-boxes text-primary me-2"></i>Manajemen Inventaris Barang</h3>
+                <p class="text-muted small mb-0">Kelola daftar stok produk, varian satuan jual, dan harga barang.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/tools/kasir" class="btn btn-outline-secondary btn-sm">Kasir</a>
+                <a href="/dashboard/reports" class="btn btn-outline-secondary btn-sm">Laporan</a>
+                <a href="/dashboard/products/add" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Tambah Produk Baru
+                </a>
+            </div>
+        </div>
+
+        <!-- Card Filter & Tabel -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari nama produk / barcode..." onkeyup="filterProducts()">
+                        </div>
+                    </div>
+                    <div class="col-md-8 text-end">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="loadProducts()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="productTable">
+                        <thead class="table-light" style="font-size: 13px;">
+                            <tr>
+                                <th>Barcode</th>
+                                <th>Nama Produk</th>
+                                <th>Satuan Terkecil</th>
+                                <th>Total Stok</th>
+                                <th>Rincian Satuan & Harga Jual</th>
+                                <th class="text-center" style="width: 120px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productContainer" style="font-size: 13px;">
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">Memuat data produk...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let allProducts = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadProducts();
+        });
+
+        // Ambil Data dari API GET /api/v1/products
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/v1/products');
+                const result = await res.json();
+
+                if (result.success) {
+                    allProducts = result.data;
+                    renderTable(allProducts);
+                } else {
+                    alert('Gagal mengambil data: ' + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('productContainer').innerHTML = 
+                    `<tr><td colspan="6" class="text-center text-danger py-4">Gagal terhubung ke server.</td></tr>`;
+            }
+        }
+
+        // Render Data ke Dalam Tabel
+        function renderTable(products) {
+            const container = document.getElementById('productContainer');
+            if (products.length === 0) {
+                container.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data produk. Silakan tambah produk baru.</td></tr>`;
+                return;
+            }
+
+            container.innerHTML = products.map(prod => {
+                // Parsing data units dari JSON_ARRAYAGG MySQL
+                let units = [];
+                try {
+                    units = typeof prod.units === 'string' ? JSON.parse(prod.units) : (prod.units || []);
+                } catch(e) { units = []; }
+
+                // Badge Stok Indicator
+                let stokBadge = '';
+                if (prod.stok_terkecil <= 0) {
+                    stokBadge = `<span class="badge bg-danger">Habis (${prod.stok_terkecil})</span>`;
+                } else if (prod.stok_terkecil < 10) {
+                    stokBadge = `<span class="badge bg-warning text-dark">Menipis (${prod.stok_terkecil})</span>`;
+                } else {
+                    stokBadge = `<span class="badge bg-success">${prod.stok_terkecil}</span>`;
+                }
+
+                // Format Rincian Satuan
+                const unitsList = units.map(u => {
+                    return `<span class="badge bg-light text-dark border me-1 mb-1">
+                        ${u.nama_satuan} (Isi: ${u.jumlah_konversi}): <strong>Rp ${Number(u.harga_jual).toLocaleString('id-ID')}</strong>
+                    </span>`;
+                }).join('');
+
+                return `
+                    <tr>
+                        <td><code>${prod.barcode || '-'}</code></td>
+                        <td class="fw-bold">${prod.nama_produk}</td>
+                        <td><span class="badge bg-info text-dark">${prod.satuan_terkecil}</span></td>
+                        <td>${stokBadge} ${prod.satuan_terkecil}</td>
+                        <td>${unitsList || '<em class="text-muted">Tidak ada varian</em>'}</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-success btn-sm me-1" title="Catat Barang Masuk" onclick="catatBarangMasuk(${prod.id}, '${prod.nama_produk}', '${prod.satuan_terkecil}')">
+                                <i class="bi bi-box-arrow-in-down"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteProduct(${prod.id}, '${prod.nama_produk}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Pencarian Produk Realtime
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.nama_produk.toLowerCase().includes(query) ||
+                (p.barcode && p.barcode.toLowerCase().includes(query))
+            );
+            renderTable(filtered);
+        }
+
+        // Catat Barang Masuk (restock) — dipakai untuk kroscek stok di halaman Laporan
+        async function catatBarangMasuk(id, name, satuanTerkecil) {
+            const qtyStr = prompt(`Berapa jumlah "${name}" yang masuk? (dalam satuan terkecil: ${satuanTerkecil})`);
+            if (qtyStr === null) return;
+            const qty = parseInt(qtyStr, 10);
+            if (!qty || qty <= 0) return alert('Jumlah harus berupa angka lebih dari 0.');
+            const keterangan = prompt('Keterangan (opsional, misal: "Restock dari supplier A"):') || '';
+
+            try {
+                const res = await fetch('/api/v1/stock-in', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+                    body: JSON.stringify({ product_id: id, qty_masuk: qty, keterangan })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    loadProducts();
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan sistem.');
+            }
+        }
+
+        // Hapus Produk
+        async function deleteProduct(id, name) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus produk "${name}"?`)) return;
+
+            try {
+                const res = await fetch(`/api/v1/products/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'x-csrf-token': csrfToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    loadProducts();
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan sistem.');
+            }
+        }
+    </script>
+</body>
+</html>

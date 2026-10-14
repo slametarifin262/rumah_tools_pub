@@ -1,0 +1,390 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!-- Library PDF.js untuk render preview halaman PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<main class="py-8 bg-gray-50 min-h-screen">
+    <div class="w-full lg:w-3/4 max-w-5xl mx-auto px-4">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1">Tanda Tangan PDF Online</h1>
+            <p class="text-sm text-gray-500 mb-6">Buat tanda tangan kustom atau unggah gambar TTD Anda (auto-remove background), lalu klik posisi pembubuhan pada dokumen.</p>
+
+            <form id="signForm" enctype="multipart/form-data">
+                <input type="hidden" id="signatureData" name="signature_data">
+                <input type="hidden" id="posX" name="pos_x" value="50">
+                <input type="hidden" id="posY" name="pos_y" value="50">
+
+                <!-- Upload Zone Dokumen PDF -->
+                <div id="dropZone" class="border-2 border-dashed border-gray-300 hover:border-amber-800 rounded-2xl p-6 text-center bg-gray-50 hover:bg-amber-50/20 transition cursor-pointer mb-6">
+                    <svg class="mx-auto h-10 w-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p id="fileName" class="text-sm font-semibold text-gray-700 mb-1">Klik atau seret file PDF ke sini</p>
+                    <p class="text-xs text-gray-400">Format yang didukung: .PDF (Maksimal 15MB)</p>
+                    <input type="file" name="pdf_file" id="pdfInput" accept="application/pdf" required class="hidden">
+                </div>
+
+                <!-- Section Pilihan Mode TTD: Draw vs Upload -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <!-- Tab Navigation -->
+                        <div class="flex border-b border-gray-200 mb-3">
+                            <button type="button" id="tabDraw" onclick="switchTab('draw')" class="py-2 px-4 text-xs font-bold border-b-2 border-amber-800 text-amber-800 focus:outline-none">Gambar TTD</button>
+                            <button type="button" id="tabUpload" onclick="switchTab('upload')" class="py-2 px-4 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none">Upload Gambar TTD</button>
+                        </div>
+
+                        <!-- Panel 1: Canvas Draw TTD -->
+                        <div id="panelDraw" class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-[11px] font-bold text-gray-700 uppercase">Warna Tinta:</label>
+                                    <input type="color" id="inkColorPicker" value="#000000" onchange="setInkColor(this.value)" class="w-6 h-6 rounded border-0 cursor-pointer shadow-sm bg-transparent">
+                                    <button type="button" onclick="setInkColor('#000000')" class="w-5 h-5 rounded-full bg-black border border-gray-200" title="Hitam"></button>
+                                    <button type="button" onclick="setInkColor('#003399')" class="w-5 h-5 rounded-full bg-blue-700 border border-gray-200" title="Biru Dokumen"></button>
+                                    <button type="button" onclick="setInkColor('#dc2626')" class="w-5 h-5 rounded-full bg-red-600 border border-gray-200" title="Merah"></button>
+                                </div>
+                                <button type="button" id="clearCanvas" class="text-xs text-red-600 hover:underline font-semibold">Bersihkan</button>
+                            </div>
+
+                            <div class="border-2 border-gray-300 rounded-2xl overflow-hidden bg-white shadow-inner relative">
+                                <canvas id="sigCanvas" width="400" height="200" class="w-full h-40 cursor-crosshair touch-none"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Panel 2: Upload Gambar TTD + Auto Remove BG -->
+                        <!-- Panel 2: Upload Gambar TTD + Auto Remove BG & Resize -->
+                        <div id="panelUpload" class="hidden space-y-3">
+                            <label class="block text-xs font-bold text-gray-700 uppercase">Unggah Foto Tanda Tangan:</label>
+                            <input type="file" id="sigImageInput" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer border border-gray-300 rounded-xl">
+                            
+                            <!-- Slider Adjust Sensitivitas Tinta -->
+                            <div id="adjustControls" class="hidden space-y-1">
+                                <div class="flex justify-between items-center text-[11px] font-bold text-gray-700">
+                                    <span>Pembersihan Background / Ketebalan Tinta:</span>
+                                    <span id="threshVal">190</span>
+                                </div>
+                                <input type="range" id="thresholdSlider" min="100" max="240" value="190" class="w-full accent-amber-800">
+                            </div>
+
+                            <div class="border border-gray-200 rounded-xl p-3 bg-gray-50 text-center">
+                                <p class="text-[11px] text-gray-500 mb-2">Pratinjau Auto-Crop & Remove BG:</p>
+                                <div class="w-full h-32 border border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:12px_12px] overflow-hidden p-2">
+                                    <img id="imgPreview" class="max-h-full max-w-full object-contain hidden">
+                                    <span id="imgPlaceholder" class="text-xs text-gray-400">Belum ada gambar terpilih</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pengaturan Halaman & Ukuran -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ditempatkan Pada Halaman Ke-:</label>
+                            <input type="number" id="targetPage" name="target_page" min="1" value="1" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-amber-800">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-bold text-gray-700 uppercase">Ukuran Lebar TTD:</label>
+                                <span id="widthVal" class="text-xs font-semibold text-gray-700">150 px</span>
+                            </div>
+                            <input type="range" id="sigWidth" name="sig_width" min="80" max="300" step="10" value="150" oninput="document.getElementById('widthVal').innerText = this.value + ' px'; updateOverlaySize();" class="w-full accent-amber-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Visual PDF Picker -->
+                <div id="pdfViewerContainer" class="hidden mb-6">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Klik/Seret Posisi Tanda Tangan pada Dokumen:</label>
+                    <div id="pageWrapper" class="relative inline-block border border-gray-300 shadow-md rounded-lg overflow-hidden cursor-pointer mx-auto">
+                        <canvas id="pdfRenderCanvas" class="block"></canvas>
+                        
+                        <!-- Overlay Box TTD -->
+                        <div id="sigOverlay" class="absolute border-2 border-dashed border-amber-800 bg-amber-500/20 flex items-center justify-center text-amber-900 font-bold text-xs select-none" style="width: 150px; height: 60px; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            [ Area TTD ]
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="processBtn" class="w-full bg-amber-800 hover:bg-amber-900 text-white font-semibold text-sm py-3 px-6 rounded-xl transition shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>
+                    Bubuhkan Tanda Tangan Ke PDF
+                </button>
+            </form>
+
+            <div id="loadingState" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-amber-800 border-t-transparent mb-3"></div>
+                <p class="text-sm font-semibold text-gray-700">Sedang membubuhkan tanda tangan ke dokumen Anda...</p>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="resultContainer" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+                <h2 class="text-lg font-bold text-gray-900">Hasil PDF Bertanda Tangan</h2>
+                <a id="downloadBtn" href="#" download="dokumen_signed.pdf" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download PDF Hasil
+                </a>
+            </div>
+            <div class="w-full h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-gray-100">
+                <iframe id="pdfPreview" class="w-full h-full"></iframe>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    let currentMode = 'draw'; // 'draw' atau 'upload'
+    let currentInkColor = '#000000';
+    let uploadedSigDataUrl = null;
+
+    // Canvas Signature Draw Setup
+    const canvas = document.getElementById('sigCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let isCanvasEmpty = true;
+
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = currentInkColor;
+
+    function setInkColor(hex) {
+        currentInkColor = hex;
+        ctx.strokeStyle = hex;
+        document.getElementById('inkColorPicker').value = hex;
+    }
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+    }
+
+    function startDrawing(e) {
+        isDrawing = true;
+        isCanvasEmpty = false;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        checkFormValid();
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+
+    function stopDrawing() { isDrawing = false; }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        isCanvasEmpty = true;
+        checkFormValid();
+    });
+
+    // Tab Switcher
+    function switchTab(mode) {
+        currentMode = mode;
+        const tabDraw = document.getElementById('tabDraw');
+        const tabUpload = document.getElementById('tabUpload');
+        const panelDraw = document.getElementById('panelDraw');
+        const panelUpload = document.getElementById('panelUpload');
+
+        if (mode === 'draw') {
+            tabDraw.className = "py-2 px-4 text-xs font-bold border-b-2 border-amber-800 text-amber-800 focus:outline-none";
+            tabUpload.className = "py-2 px-4 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none";
+            panelDraw.classList.remove('hidden');
+            panelUpload.classList.add('hidden');
+        } else {
+            tabUpload.className = "py-2 px-4 text-xs font-bold border-b-2 border-amber-800 text-amber-800 focus:outline-none";
+            tabDraw.className = "py-2 px-4 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none";
+            panelUpload.classList.remove('hidden');
+            panelDraw.classList.add('hidden');
+        }
+        checkFormValid();
+    }
+
+    // Auto-Remove Background dari Gambar TTD yang diunggah
+    document.getElementById('sigImageInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+
+                tempCtx.drawImage(img, 0, 0);
+                const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const data = imgData.data;
+
+                // Algoritma thresholding sederhana: Ubah pixel terang/putih menjadi transparan
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    // Jika warna piksel mendekati putih (kertas)
+                    if (r > 190 && g > 190 && b > 190) {
+                        data[i + 3] = 0; // Set Alpha = 0 (Transparan)
+                    }
+                }
+
+                tempCtx.putImageData(imgData, 0, 0);
+                uploadedSigDataUrl = tempCanvas.toDataURL('image/png');
+
+                const imgPreview = document.getElementById('imgPreview');
+                const imgPlaceholder = document.getElementById('imgPlaceholder');
+                imgPreview.src = uploadedSigDataUrl;
+                imgPreview.classList.remove('hidden');
+                imgPlaceholder.classList.add('hidden');
+
+                checkFormValid();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // PDF Rendering & Visual Position Picker
+    let loadedPdfDoc = null;
+    const pdfInput = document.getElementById('pdfInput');
+    const pdfRenderCanvas = document.getElementById('pdfRenderCanvas');
+    const targetPageInput = document.getElementById('targetPage');
+    const pageWrapper = document.getElementById('pageWrapper');
+    const sigOverlay = document.getElementById('sigOverlay');
+    const posXInput = document.getElementById('posX');
+    const posYInput = document.getElementById('posY');
+
+    document.getElementById('dropZone').addEventListener('click', () => pdfInput.click());
+
+    pdfInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            document.getElementById('fileName').innerText = `File Terpilih: ${file.name}`;
+            const fileArrayBuffer = await file.arrayBuffer();
+            loadedPdfDoc = await pdfjsLib.getDocument({ data: fileArrayBuffer }).promise;
+            document.getElementById('pdfViewerContainer').classList.remove('hidden');
+            renderPdfPage(1);
+        }
+        checkFormValid();
+    });
+
+    targetPageInput.addEventListener('change', () => {
+        if (loadedPdfDoc) {
+            const pageNum = parseInt(targetPageInput.value) || 1;
+            renderPdfPage(pageNum);
+        }
+    });
+
+    async function renderPdfPage(pageNum) {
+        if (!loadedPdfDoc) return;
+        const page = await loadedPdfDoc.getPage(Math.min(pageNum, loadedPdfDoc.numPages));
+        const viewport = page.getViewport({ scale: 1.0 });
+
+        pdfRenderCanvas.width = viewport.width;
+        pdfRenderCanvas.height = viewport.height;
+
+        const renderContext = {
+            canvasContext: pdfRenderCanvas.getContext('2d'),
+            viewport: viewport
+        };
+        await page.render(renderContext).promise;
+    }
+
+    pageWrapper.addEventListener('click', (e) => {
+        const rect = pageWrapper.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        const percentX = (clickX / rect.width) * 100;
+        const percentY = (clickY / rect.height) * 100;
+
+        posXInput.value = percentX.toFixed(2);
+        posYInput.value = percentY.toFixed(2);
+
+        sigOverlay.style.left = `${percentX}%`;
+        sigOverlay.style.top = `${percentY}%`;
+    });
+
+    function updateOverlaySize() {
+        const width = document.getElementById('sigWidth').value;
+        sigOverlay.style.width = `${width}px`;
+        sigOverlay.style.height = `${width / 2.5}px`;
+    }
+
+    function checkFormValid() {
+        const isPdfUploaded = pdfInput.files.length > 0;
+        let isSigReady = false;
+
+        if (currentMode === 'draw') {
+            isSigReady = !isCanvasEmpty;
+        } else {
+            isSigReady = !!uploadedSigDataUrl;
+        }
+
+        document.getElementById('processBtn').disabled = !(isPdfUploaded && isSigReady);
+    }
+
+    document.getElementById('signForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Tentukan sumber data TTD berdasarkan mode yang aktif
+        if (currentMode === 'draw') {
+            document.getElementById('signatureData').value = canvas.toDataURL('image/png');
+        } else {
+            document.getElementById('signatureData').value = uploadedSigDataUrl;
+        }
+
+        const formData = new FormData(e.target);
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('resultContainer').classList.add('hidden');
+
+        try {
+            const response = await fetch('/tools/pdf-signature', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('pdfPreview').src = data.pdfDataUrl;
+                document.getElementById('downloadBtn').href = data.pdfDataUrl;
+                document.getElementById('resultContainer').classList.remove('hidden');
+                document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert(data.error || 'Gagal menandatangani PDF.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Terjadi kesalahan saat memproses tanda tangan.');
+        } finally {
+            document.getElementById('loadingState').classList.add('hidden');
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

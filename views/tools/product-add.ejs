@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tambahkan ini di bagian head/form EJS -->
+	<meta name="csrf-token" content="<%= csrfToken %>">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="bg-light py-4">
+
+    <div class="container" style="max-width: 900px;">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="bi bi-box-seam text-primary me-2"></i>Tambah Produk Baru</h3>
+                <p class="text-muted small mb-0">Kelola stok produk dengan multi-satuan dan harga grosir/eceran.</p>
+            </div>
+            <a href="/dashboard/inventory" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+
+        <form id="productForm" onsubmit="saveProduct(event)">
+            <!-- Card 1: Informasi Utama Produk -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-info-circle me-2"></i>Informasi Utama & Stok</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Kode Barcode Utama (Opsional)</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-barcode"></i></span>
+                                <input type="text" id="kode_barcode" class="form-control" placeholder="Contoh: 899277512345">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Nama Produk <span class="text-danger">*</span></label>
+                            <input type="text" id="nama_produk" class="form-control form-control-sm" placeholder="Contoh: Indomie Goreng Spasial" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Satuan Terkecil / Dasar <span class="text-danger">*</span></label>
+                            <input type="text" id="satuan_terkecil" class="form-control form-control-sm" placeholder="Contoh: Pcs / Botol / Gram" oninput="updateBaseUnitLabel()" required>
+                            <span class="form-text text-muted" style="font-size: 11px;">Satuan terendah saat dihitung di gudang/stok (misal: Pcs).</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Stok Awal Total (Dalam Satuan Terkecil)</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" id="stok_terkecil" class="form-control" value="0" min="0" required>
+                                <span class="input-group-text label-satuan-terkecil">Pcs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Pengaturan Multi Satuan & Harga Jual -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-tags me-2"></i>Satuan Jual & Harga</h6>
+                        <small class="text-muted">Tambahkan varian eceran, pack, dus/karton beserta konversi harga.</small>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addUnitRow()">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah Satuan
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr style="font-size: 12px;">
+                                    <th style="width: 20%;">Nama Satuan Jual</th>
+                                    <th style="width: 25%;">Isi Konversi (Ke Satuan Terkecil)</th>
+                                    <th style="width: 25%;">Harga Jual (Rp)</th>
+                                    <th style="width: 20%;">Barcode Varian</th>
+                                    <th style="width: 10%;" class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unitContainer">
+                                <!-- Row Satuan akan ditambahkan dinamis oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Action -->
+            <div class="d-flex justify-content-end gap-2">
+                <button type="reset" class="btn btn-light btn-sm px-4">Reset</button>
+                <button type="submit" class="btn btn-success btn-sm px-4" id="btnSave">
+                    <i class="bi bi-check-circle me-1"></i> Simpan Produk
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Set default baris pertama (Satuan Terkecil / Eceran)
+            addUnitRow('Pcs', 1, 3000);
+            updateBaseUnitLabel();
+        });
+
+        // Update Label Satuan Terkecil secara Realtime
+        function updateBaseUnitLabel() {
+            const val = document.getElementById('satuan_terkecil').value || 'Pcs';
+            document.querySelectorAll('.label-satuan-terkecil').forEach(el => {
+                el.innerText = val;
+            });
+        }
+
+        // Tambah Baris Satuan
+        function addUnitRow(namaSatuan = '', konversi = 1, harga = '') {
+            const container = document.getElementById('unitContainer');
+            const rowId = Date.now() + Math.random().toString(36).substr(2, 4);
+
+            const isFirstRow = container.children.length === 0;
+
+            const tr = document.createElement('tr');
+            tr.id = `row-${rowId}`;
+            tr.innerHTML = `
+                <td>
+                    <input type="text" class="form-control form-control-sm unit-nama" placeholder="misal: Box / Pack" value="${namaSatuan}" required>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control unit-konversi" min="1" value="${konversi}" ${isFirstRow ? 'readonly' : ''} required>
+                        <span class="input-group-text label-satuan-terkecil" style="font-size: 11px;">Pcs</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Rp</span>
+                        <input type="number" class="form-control unit-harga" min="0" placeholder="0" value="${harga}" required>
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm unit-barcode" placeholder="Optional">
+                </td>
+                <td class="text-center">
+                    ${isFirstRow 
+                        ? '<span class="badge bg-secondary">Utama</span>' 
+                        : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="removeUnitRow('row-${rowId}')"><i class="bi bi-trash"></i></button>`
+                    }
+                </td>
+            `;
+            container.appendChild(tr);
+            updateBaseUnitLabel();
+        }
+
+        // Hapus Baris Satuan
+        function removeUnitRow(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+        }
+
+        // Submit Form ke Backend API
+        async function saveProduct(e) {
+            e.preventDefault();
+
+            const btnSave = document.getElementById('btnSave');
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
+
+            const kode_barcode = document.getElementById('kode_barcode').value;
+            const nama_produk = document.getElementById('nama_produk').value;
+            const satuan_terkecil = document.getElementById('satuan_terkecil').value;
+            const stok_terkecil = parseFloat(document.getElementById('stok_terkecil').value) || 0;
+
+            // Collect Data Multi-Satuan
+            const units = [];
+            const rows = document.querySelectorAll('#unitContainer tr');
+
+            rows.forEach(tr => {
+                const nama_satuan = tr.querySelector('.unit-nama').value;
+                const jumlah_konversi = parseFloat(tr.querySelector('.unit-konversi').value) || 1;
+                const harga_jual = parseFloat(tr.querySelector('.unit-harga').value) || 0;
+                const barcode_satuan = tr.querySelector('.unit-barcode').value;
+
+                if (nama_satuan && harga_jual > 0) {
+                    units.push({
+                        nama_satuan,
+                        jumlah_konversi,
+                        harga_jual,
+                        barcode_satuan
+                    });
+                }
+            });
+
+            if (units.length === 0) {
+                alert('Mohon isi minimal 1 satuan jual dan harganya!');
+                btnSave.disabled = false;
+                btnSave.innerHTML = '<i class="bi bi-check-circle me-1"></i> Simpan Produk';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/v1/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        kode_barcode,
+                        nama_produk,
+                        satuan_terkecil,
+                        stok_terkecil,
+                        units
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Produk berhasil disimpan!');
+                    window.location.href = '/dashboard/inventory';
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan/server.');
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerHTML = '<i class="bi bi-check-circle me-1"></i> Simpan Produk';
+            }
+        }
+    </script>
+</body>
+</html>

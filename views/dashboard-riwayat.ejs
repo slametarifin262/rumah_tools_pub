@@ -1,0 +1,166 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+    <%- include('partials/sidebar', { active: 'riwayat' }) %>
+
+    <main class="flex-1 min-w-0">
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">Riwayat Penggunaan Layanan</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Semua aktivitas tool yang Anda gunakan saat login tercatat di sini. File hasil disimpan
+                terenkripsi dan otomatis terhapus setelah 7 hari.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-blue-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Penggunaan Bulan Ini</div>
+                <div class="text-3xl font-bold mt-1"><%= totalBulanIni %></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-emerald-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Tool Paling Sering Dipakai</div>
+                <div class="text-lg font-bold mt-1">
+                    <% if (topTool) { %><%= topTool.tool_name %>
+                        <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(<%= topTool.jumlah %>x)</span>
+                    <% } else { %>-<% } %>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800
+                        shadow-sm p-4 border-l-4 border-l-sky-500">
+                <div class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Masa Simpan File</div>
+                <div class="text-lg font-bold mt-1">7 hari</div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 mb-4">
+            <form method="GET" action="/dashboard/riwayat" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-4">
+                    <label class="block text-xs font-semibold mb-1">Filter Tool</label>
+                    <select name="tool"
+                            class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700
+                                   bg-white dark:bg-slate-800 text-sm">
+                        <option value="">Semua Tool</option>
+                        <% toolsUsed.forEach(t => { %>
+                            <option value="<%= t.tool_slug %>" <%= toolFilter === t.tool_slug ? 'selected' : '' %>><%= t.tool_name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="md:col-span-6">
+                    <label class="block text-xs font-semibold mb-1">Cari</label>
+                    <input type="text" name="q" value="<%= searchQuery %>"
+                           placeholder="Cari berdasarkan ringkasan aktivitas..."
+                           class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700
+                                  bg-white dark:bg-slate-800 text-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
+                                   py-2 px-4 rounded-lg transition">
+                        Terapkan
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <% if (logs && logs.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/60 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
+                        <tr>
+                            <th class="px-5 py-3">Waktu</th>
+                            <th class="px-5 py-3">Tool</th>
+                            <th class="px-5 py-3">Ringkasan</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <% logs.forEach(log => { %>
+                        <tr id="row-<%= log.id %>">
+                            <td class="px-5 py-3 text-xs text-slate-500 dark:text-slate-400">
+                                <%= new Date(log.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) %>
+                            </td>
+                            <td class="px-5 py-3">
+                                <span class="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-xs font-semibold"><%= log.tool_name %></span>
+                            </td>
+                            <td class="px-5 py-3 text-xs"><%= log.summary || '-' %></td>
+                            <td class="px-5 py-3">
+                                <% if (log.status === 'success') { %>
+                                <span class="text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30
+                                             dark:text-emerald-300 px-2 py-1 rounded-full">Berhasil</span>
+                                <% } else { %>
+                                <span class="text-xs font-semibold bg-red-50 text-red-700 dark:bg-red-900/30
+                                             dark:text-red-300 px-2 py-1 rounded-full">Gagal</span>
+                                <% } %>
+                            </td>
+                            <td class="px-5 py-3 text-right whitespace-nowrap">
+                                <% if (log.has_file) { %>
+                                <a href="/dashboard/riwayat/<%= log.id %>/unduh"
+                                   class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-300 text-blue-600
+                                          dark:border-blue-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition mr-1 inline-block">
+                                    Unduh ulang
+                                </a>
+                                <% } %>
+                                <button onclick="hapusRiwayat(<%= log.id %>)"
+                                        class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-300 text-red-600
+                                               dark:border-red-800 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                                    Hapus
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div class="text-center py-10 px-4">
+                <div class="text-4xl mb-2">🕓</div>
+                <h3 class="font-bold text-slate-600 dark:text-slate-300">Belum ada riwayat penggunaan</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Riwayat akan muncul di sini setelah Anda memakai salah satu tool saat login.
+                </p>
+            </div>
+            <% } %>
+        </div>
+
+        <% if (totalPages > 1) { %>
+        <div class="flex justify-center gap-1 mt-4">
+            <% for (let p = 1; p <= totalPages; p++) { %>
+                <a href="?page=<%= p %>&tool=<%= toolFilter %>&q=<%= searchQuery %>"
+                   class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition
+                          <%= p === page ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800' %>">
+                    <%= p %>
+                </a>
+            <% } %>
+        </div>
+        <% } %>
+
+    </main>
+</div>
+
+<script>
+async function hapusRiwayat(id) {
+    if (!confirm('Hapus riwayat ini? File terkait (jika ada) juga akan terhapus permanen.')) return;
+    try {
+        const res = await fetch('/dashboard/riwayat/' + id, {
+            method: 'DELETE',
+            headers: { 'x-csrf-token': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+        });
+        const result = await res.json();
+        if (result.success) {
+            document.getElementById('row-' + id)?.remove();
+        } else {
+            alert(result.message || 'Gagal menghapus riwayat.');
+        }
+    } catch (err) {
+        alert('Terjadi kesalahan koneksi.');
+    }
+}
+</script>
+
+<%- include('partials/footer') %>

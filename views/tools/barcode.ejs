@@ -1,0 +1,316 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Library Barcode Reader (Html5Qrcode) & Generator (JsBarcode) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-6 px-4"> 
+
+    <!-- HERO -->
+    <section class="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white rounded-2xl max-w-5xl mx-auto mb-6">
+        <div class="px-6 py-8 md:py-10">
+            <a href="/tools" class="inline-flex items-center gap-2 text-sm text-purple-100 hover:text-white mb-4">
+                ← Kembali ke Semua Tools
+            </a>
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl font-bold">
+                    ▥
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Barcode Studio</h1>
+                    <p class="text-purple-100 text-sm mt-1">Buat, Scan via Kamera, atau Baca Barcode dari Gambar</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- TAB NAVIGASI UTAMA -->
+        <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl max-w-md mx-auto shadow-sm">
+            <button onclick="switchTab('generate')" id="tab-generate" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl bg-purple-600 text-white transition-all">
+                <i class="fa-solid fa-barcode mr-2"></i>Buat Barcode
+            </button>
+            <button onclick="switchTab('camera')" id="tab-camera" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-camera mr-2"></i>Scan Kamera
+            </button>
+            <button onclick="switchTab('upload')" id="tab-upload" class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-upload mr-2"></i>Upload File
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: GENERATOR BARCODE ================= -->
+        <div id="content-generate" class="tab-content block">
+            <div class="grid lg:grid-cols-5 gap-6"> 
+                <!-- FORM (KIRI) -->
+                <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+                    <h2 class="text-xl font-bold text-white">Buat Barcode</h2>
+                    <p class="mt-1 text-sm text-slate-400">Masukkan kode dan pilih format barcode.</p>
+
+                    <div class="mt-6">
+                        <label for="barcodeText" class="block text-sm font-semibold mb-2 text-slate-200">Kode</label>
+                        <input id="barcodeText" type="text" maxlength="100" placeholder="Contoh: 123456789" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <div class="mt-2 flex justify-between">
+                            <span id="barcodeInputError" class="text-sm text-red-500 hidden">Data tidak valid.</span>
+                            <span id="barcodeCharCount" class="text-xs text-slate-500 ml-auto">0 / 100</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label for="barcodeFormat" class="block text-sm font-semibold mb-2 text-slate-200">Format Barcode</label>
+                        <select id="barcodeFormat" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="CODE128">CODE128 (Umum)</option>
+                            <option value="EAN13">EAN-13 (13 Digit Angka)</option>
+                            <option value="EAN8">EAN-8 (8 Digit Angka)</option>
+                            <option value="UPC">UPC (12 Digit Angka)</option>
+                            <option value="CODE39">CODE39</option>
+                            <option value="ITF14">ITF-14</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button id="generateBarcodeBtn" onclick="generateBarcode()" class="flex-1 px-5 py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-500 transition">
+                            Generate Barcode
+                        </button>
+                        <button id="resetBarcodeBtn" onclick="resetBarcode()" class="px-5 py-3 rounded-xl border border-slate-800 font-semibold text-slate-300 hover:bg-slate-800 transition">
+                            Reset
+                        </button>
+                    </div>
+                </div> 
+
+                <!-- PREVIEW (KANAN) -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 flex flex-col justify-between">
+                    <div class="text-center">
+                        <h2 class="text-xl font-bold text-white">Preview</h2>
+                        <p class="mt-1 text-sm text-slate-400">Barcode akan muncul di sini.</p>
+
+                        <div class="mt-8 min-h-[180px] flex items-center justify-center bg-slate-950 rounded-xl p-4 border border-slate-800">
+                            <svg id="barcodeSvg" class="max-w-full"></svg>
+                            <span id="barcodeEmptyText" class="text-slate-600 text-sm">Barcode belum dibuat</span>
+                        </div>
+                    </div>
+
+                    <div id="barcodeActions" class="hidden mt-6 space-y-3">
+                        <button id="downloadBarcodeBtn" onclick="downloadBarcode()" class="w-full px-5 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition">
+                            ↓ Download PNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: SCAN KAMERA ================= -->
+        <div id="content-camera" class="tab-content hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto">
+                <h2 class="text-xl font-bold text-white mb-2">Scan Barcode via Kamera</h2>
+                <p class="text-sm text-slate-400 mb-6">Arahkan kamera ke arah Barcode / QR Code</p>
+                
+                <div id="reader-camera" class="w-full overflow-hidden rounded-xl border-2 border-dashed border-slate-800 bg-slate-950"></div>
+                
+                <div class="mt-6 flex justify-center gap-3">
+                    <button id="start-cam-btn" onclick="startCamera()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition">
+                        <i class="fa-solid fa-video mr-2"></i>Mulai Kamera
+                    </button>
+                    <button id="stop-cam-btn" onclick="stopCamera()" class="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl transition hidden">
+                        <i class="fa-solid fa-stop mr-2"></i>Hentikan Kamera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: UPLOAD GAMBAR ================= -->
+        <div id="content-upload" class="tab-content hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto">
+                <h2 class="text-xl font-bold text-white mb-2">Upload Gambar Barcode</h2>
+                <p class="text-sm text-slate-400 mb-6">Pilih file gambar barcode dari penyimpanan perangkat Anda</p>
+                
+                <input type="file" id="file-input" accept="image/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-500 mb-4 cursor-pointer bg-slate-950 rounded-xl border border-slate-800">
+                <div id="upload-preview" class="w-full max-w-xs mx-auto mt-4"></div>
+            </div>
+        </div>
+
+        <!-- HASIL SCANNING -->
+        <div id="scan-result-container" class="hidden max-w-xl mx-auto p-6 bg-slate-900 border border-purple-500/50 rounded-2xl shadow-lg">
+            <p class="text-sm text-purple-400 font-semibold mb-3"><i class="fa-solid fa-circle-check mr-2"></i>Hasil Pembacaan Kode:</p>
+            <textarea id="scan-result-text" class="w-full p-4 border border-slate-800 rounded-xl bg-slate-950 text-slate-100 focus:outline-none" rows="3" readonly></textarea>
+            <button onclick="copyResult()" class="mt-3 w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fa-regular fa-copy"></i> Salin Teks
+            </button>
+        </div>
+
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT LOKAL -->
+    <script>
+        let html5QrCode;
+
+        // Counter Karakter Barcode Input
+        const barcodeInput = document.getElementById('barcodeText');
+        if (barcodeInput) {
+            barcodeInput.addEventListener('input', function() {
+                document.getElementById('barcodeCharCount').textContent = `${this.value.length} / 100`;
+            });
+        }
+
+        // 1. Logika Pindah Tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.add('bg-purple-600', 'text-white');
+            activeBtn.classList.remove('text-slate-400');
+
+            if (tabName !== 'camera') stopCamera();
+            document.getElementById('scan-result-container').classList.add('hidden');
+        }
+
+        // 2. Logika Generator Barcode (Menggunakan JsBarcode)
+        function generateBarcode() {
+            const text = document.getElementById('barcodeText').value.trim();
+            const format = document.getElementById('barcodeFormat').value;
+            const errorElement = document.getElementById('barcodeInputError');
+
+            if (!text) {
+                alert('Silakan masukkan kode terlebih dahulu!');
+                return;
+            }
+
+            try {
+                errorElement.classList.add('hidden');
+                JsBarcode("#barcodeSvg", text, {
+                    format: format,
+                    lineColor: "#ffffff",
+                    background: "transparent",
+                    width: 2,
+                    height: 80,
+                    displayValue: true,
+                    textColor: "#ffffff"
+                });
+                
+                document.getElementById('barcodeEmptyText').classList.add('hidden');
+                document.getElementById('barcodeActions').classList.remove('hidden');
+            } catch (e) {
+                errorElement.textContent = "Format data tidak sesuai dengan standar format barcode yang dipilih.";
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        function resetBarcode() {
+            document.getElementById('barcodeText').value = '';
+            document.getElementById('barcodeCharCount').textContent = '0 / 100';
+            document.getElementById('barcodeSvg').innerHTML = '';
+            document.getElementById('barcodeEmptyText').classList.remove('hidden');
+            document.getElementById('barcodeActions').classList.add('hidden');
+            document.getElementById('barcodeInputError').classList.add('hidden');
+        }
+
+        function downloadBarcode() {
+            const svg = document.getElementById('barcodeSvg');
+            const xml = new XMLSerializer().serializeToString(svg);
+            const svg64 = btoa(xml);
+            const image64 = 'data:image/svg+xml;base64,' + svg64;
+
+            const img = new Image();
+            img.src = image64;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width || 300;
+                canvas.height = img.height || 150;
+                const ctx = canvas.getContext('canvas');
+                ctx.drawImage(img, 0, 0);
+
+                const link = document.createElement('a');
+                link.download = 'barcode.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+        }
+
+        // 3. Logika Scan Kamera
+        function startCamera() {
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader-camera");
+            
+            document.getElementById('start-cam-btn').classList.add('hidden');
+            document.getElementById('stop-cam-btn').classList.remove('hidden');
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    showResult(decodedText);
+                    stopCamera();
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                alert("Gagal mengakses kamera. Pastikan izin kamera telah diberikan.");
+                stopCamera();
+            });
+        }
+
+        function stopCamera() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('start-cam-btn').classList.remove('hidden');
+                    document.getElementById('stop-cam-btn').classList.add('hidden');
+                }).catch(err => console.log(err));
+            }
+        }
+
+        // 4. Logika Upload Gambar Reader
+        const fileInput = document.getElementById('file-input');
+        if (fileInput) {
+            fileInput.addEventListener('change', e => {
+                if (e.target.files.length === 0) return;
+                const imageFile = e.target.files[0];
+                
+                const html5QrCodeFile = new Html5Qrcode("upload-preview");
+                html5QrCodeFile.scanFile(imageFile, true)
+                    .then(decodedText => {
+                        showResult(decodedText);
+                    })
+                    .catch(err => {
+                        alert("Barcode / QR Code tidak terdeteksi pada gambar ini.");
+                    });
+            });
+        }
+
+        // 5. Tampilkan & Salin Hasil
+        function showResult(text) {
+            document.getElementById('scan-result-container').classList.remove('hidden');
+            document.getElementById('scan-result-text').value = text;
+        }
+
+        function copyResult() {
+            const text = document.getElementById('scan-result-text');
+            text.select();
+            navigator.clipboard.writeText(text.value);
+            alert('Hasil berhasil disalin!');
+        }
+    </script>
+</body>
+</html>
+
+<%- include('../partials/footer') %>

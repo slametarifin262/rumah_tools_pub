@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Rumah Tools</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="text-center mb-4">
+                <h2 class="fw-bold"><i class="bi bi-calculator-fill text-primary"></i> Kalkulator Bisnis UMKM</h2>
+                <p class="text-muted">Tools bantu hitung keuntungan, PPN, diskon, dan titik impas (BEP) untuk pelaku usaha lokal.</p>
+            </div>
+
+            <!-- Tab Navigasi -->
+            <ul class="nav nav-pills nav-justified mb-4 bg-white p-2 rounded shadow-sm" id="calcTabs">
+                <li class="nav-item">
+                    <button class="nav-link active fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-margin">
+                        <i class="bi bi-graph-up-arrow"></i> Margin & Markup
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-ppn">
+                        <i class="bi bi-receipt"></i> PPN / Pajak
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-diskon">
+                        <i class="bi bi-percent"></i> Diskon Produk
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-bep">
+                        <i class="bi bi-pie-chart-fill"></i> BEP (Titik Impas)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="calcTabsContent">
+                
+                <!-- 1. KALKULATOR MARGIN & MARKUP -->
+                <div class="tab-pane fade show active" id="tab-margin">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h4 class="card-title fw-bold text-primary mb-3"><i class="bi bi-cash-stack"></i> Hitung Margin & Markup</h4>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Modal / HPP per Unit (Rp)</label>
+                                <input type="number" id="hppInput" class="form-control form-control-lg" placeholder="Contoh: 50000" oninput="calculateMargin()">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Harga Jual per Unit (Rp)</label>
+                                <input type="number" id="hargaJualInput" class="form-control form-control-lg" placeholder="Contoh: 75000" oninput="calculateMargin()">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-light rounded border" id="marginResult">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Keuntungan Bersih</small>
+                                    <h3 class="fw-bold text-success" id="resProfit">Rp 0</h3>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Margin Keuntungan</small>
+                                    <h3 class="fw-bold text-primary" id="resMargin">0%</h3>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Markup Harga</small>
+                                    <h3 class="fw-bold text-warning" id="resMarkup">0%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. KALKULATOR PPN -->
+                <div class="tab-pane fade" id="tab-ppn">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h4 class="card-title fw-bold text-primary mb-3"><i class="bi bi-receipt-cutoff"></i> Hitung PPN (Pajak Pertambahan Nilai)</h4>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Nominal / Harga (Rp)</label>
+                                <input type="number" id="ppnNominal" class="form-control form-control-lg" placeholder="100000" oninput="calculatePPN()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tarif PPN (%)</label>
+                                <input type="number" id="ppnRate" class="form-control form-control-lg" value="11" oninput="calculatePPN()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipe Perhitungan</label>
+                                <select id="ppnType" class="form-select form-select-lg" onchange="calculatePPN()">
+                                    <option value="exclude">Belum Termasuk PPN (Eksklusif)</option>
+                                    <option value="include">Sudah Termasuk PPN (Inklusif)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 p-3 bg-light rounded border">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Dasar Pengenaan Pajak (DPP)</small>
+                                    <h4 class="fw-bold" id="resDpp">Rp 0</h4>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Nominal PPN</small>
+                                    <h4 class="fw-bold text-danger" id="resPpn">Rp 0</h4>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Total Bayar</small>
+                                    <h4 class="fw-bold text-success" id="resTotalPpn">Rp 0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. KALKULATOR DISKON -->
+                <div class="tab-pane fade" id="tab-diskon">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h4 class="card-title fw-bold text-primary mb-3"><i class="bi bi-tags-fill"></i> Hitung Diskon Produk</h4>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Harga Awal / Coret (Rp)</label>
+                                <input type="number" id="diskonHargaAwal" class="form-control form-control-lg" placeholder="150000" oninput="calculateDiskon()">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Diskon (%)</label>
+                                <input type="number" id="diskonPersen" class="form-control form-control-lg" placeholder="20" oninput="calculateDiskon()">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 p-3 bg-light rounded border">
+                            <div class="row text-center">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Hemat / Hemat Potongan</small>
+                                    <h3 class="fw-bold text-danger" id="resPotongan">Rp 0</h3>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">Harga Bayar Akhir</small>
+                                    <h3 class="fw-bold text-success" id="resHargaAkhir">Rp 0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. KALKULATOR BEP -->
+                <div class="tab-pane fade" id="tab-bep">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h4 class="card-title fw-bold text-primary mb-3"><i class="bi bi-bar-chart-steps"></i> Hitung Break Even Point (BEP)</h4>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Biaya Tetap / Fixed Cost (Rp)</label>
+                                <small class="d-block text-muted">Contoh: Sewa tempat, gaji tetap</small>
+                                <input type="number" id="bepFixedCost" class="form-control" placeholder="5000000" oninput="calculateBEP()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Biaya Variabel per Unit (Rp)</label>
+                                <small class="d-block text-muted">Contoh: Bahan baku, kemasan</small>
+                                <input type="number" id="bepVarCost" class="form-control" placeholder="15000" oninput="calculateBEP()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Harga Jual per Unit (Rp)</label>
+                                <small class="d-block text-muted">Contoh: Harga jual ke konsumen</small>
+                                <input type="number" id="bepPrice" class="form-control" placeholder="25000" oninput="calculateBEP()">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 p-3 bg-light rounded border">
+                            <div class="row text-center">
+                                <div class="col-md-6">
+                                    <small class="text-muted">BEP dalam Unit (Minimal Produksi)</small>
+                                    <h3 class="fw-bold text-primary" id="resBepUnit">0 Unit</h3>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">BEP dalam Rupiah (Minimal Omset)</small>
+                                    <h3 class="fw-bold text-success" id="resBepRupiah">Rp 0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const formatRupiah = (num) => 'Rp ' + Math.round(num).toLocaleString('id-ID');
+
+    // 1. Logic Margin & Markup
+    function calculateMargin() {
+        const hpp = parseFloat(document.getElementById('hppInput').value) || 0;
+        const hargaJual = parseFloat(document.getElementById('hargaJualInput').value) || 0;
+
+        const profit = hargaJual - hpp;
+        const margin = hargaJual > 0 ? (profit / hargaJual) * 100 : 0;
+        const markup = hpp > 0 ? (profit / hpp) * 100 : 0;
+
+        document.getElementById('resProfit').innerText = formatRupiah(profit);
+        document.getElementById('resMargin').innerText = margin.toFixed(2) + '%';
+        document.getElementById('resMarkup').innerText = markup.toFixed(2) + '%';
+    }
+
+    // 2. Logic PPN
+    function calculatePPN() {
+        const nominal = parseFloat(document.getElementById('ppnNominal').value) || 0;
+        const rate = parseFloat(document.getElementById('ppnRate').value) || 11;
+        const type = document.getElementById('ppnType').value;
+
+        let dpp = 0, ppn = 0, total = 0;
+
+        if (type === 'exclude') {
+            dpp = nominal;
+            ppn = dpp * (rate / 100);
+            total = dpp + ppn;
+        } else {
+            total = nominal;
+            dpp = total / (1 + (rate / 100));
+            ppn = total - dpp;
+        }
+
+        document.getElementById('resDpp').innerText = formatRupiah(dpp);
+        document.getElementById('resPpn').innerText = formatRupiah(ppn);
+        document.getElementById('resTotalPpn').innerText = formatRupiah(total);
+    }
+
+    // 3. Logic Diskon
+    function calculateDiskon() {
+        const hargaAwal = parseFloat(document.getElementById('diskonHargaAwal').value) || 0;
+        const diskon = parseFloat(document.getElementById('diskonPersen').value) || 0;
+
+        const potongan = hargaAwal * (diskon / 100);
+        const hargaAkhir = hargaAwal - potongan;
+
+        document.getElementById('resPotongan').innerText = formatRupiah(potongan);
+        document.getElementById('resHargaAkhir').innerText = formatRupiah(hargaAkhir);
+    }
+
+    // 4. Logic BEP
+    function calculateBEP() {
+        const fixedCost = parseFloat(document.getElementById('bepFixedCost').value) || 0;
+        const varCost = parseFloat(document.getElementById('bepVarCost').value) || 0;
+        const price = parseFloat(document.getElementById('bepPrice').value) || 0;
+
+        const marginKontribusi = price - varCost;
+        let bepUnit = 0;
+        let bepRupiah = 0;
+
+        if (marginKontribusi > 0) {
+            bepUnit = fixedCost / marginKontribusi;
+            bepRupiah = bepUnit * price;
+        }
+
+        document.getElementById('resBepUnit').innerText = Math.ceil(bepUnit).toLocaleString('id-ID') + ' Unit';
+        document.getElementById('resBepRupiah').innerText = formatRupiah(bepRupiah);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="py-8 bg-gray-50 min-h-screen">
+    <div class="w-full lg:w-3/4 max-w-5xl mx-auto px-4">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1">Kompres Dokumen PDF</h1>
+            <p class="text-sm text-gray-500 mb-6">Perkecil ukuran file PDF Anda tanpa mengubah isi dokumen. Cocok untuk lampiran email atau unggahan yang punya batas ukuran.</p>
+
+            <form id="compressForm">
+                <input type="hidden" name="_csrf" id="csrfInput" value="<%= csrfToken %>">
+
+                <!-- Drop Zone -->
+                <div
+                    id="dropZone"
+                    class="border-2 border-dashed border-gray-300 hover:border-amber-800 rounded-2xl p-6 text-center bg-gray-50 hover:bg-amber-50/20 transition cursor-pointer mb-6"
+                >
+                    <svg class="mx-auto h-10 w-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <p id="fileName" class="text-sm font-semibold text-gray-700 mb-1">Klik atau seret file PDF ke sini</p>
+                    <p class="text-xs text-gray-400">Format: PDF (Maksimal 50MB)</p>
+
+                    <input
+                        type="file"
+                        name="pdf"
+                        id="pdfInput"
+                        accept="application/pdf"
+                        required
+                        class="hidden"
+                    >
+                </div>
+
+                <!-- Pilihan Tingkat Kompresi -->
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Tingkat Kompresi:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="flex items-center gap-2 border border-gray-300 rounded-xl p-3 cursor-pointer hover:border-amber-800 has-[:checked]:border-amber-800 has-[:checked]:bg-amber-50/40">
+                            <input type="radio" name="preset" value="/screen" class="accent-amber-800">
+                            <span class="text-sm">
+                                <span class="block font-semibold text-gray-800">Ringan</span>
+                                <span class="block text-xs text-gray-500">Ukuran terkecil, kualitas layar</span>
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2 border border-gray-300 rounded-xl p-3 cursor-pointer hover:border-amber-800 has-[:checked]:border-amber-800 has-[:checked]:bg-amber-50/40">
+                            <input type="radio" name="preset" value="/ebook" class="accent-amber-800" checked>
+                            <span class="text-sm">
+                                <span class="block font-semibold text-gray-800">Sedang (Rekomendasi)</span>
+                                <span class="block text-xs text-gray-500">Seimbang, cocok untuk email</span>
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2 border border-gray-300 rounded-xl p-3 cursor-pointer hover:border-amber-800 has-[:checked]:border-amber-800 has-[:checked]:bg-amber-50/40">
+                            <input type="radio" name="preset" value="/printer" class="accent-amber-800">
+                            <span class="text-sm">
+                                <span class="block font-semibold text-gray-800">Tinggi</span>
+                                <span class="block text-xs text-gray-500">Kualitas cetak, ukuran lebih besar</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    id="processBtn"
+                    class="w-full bg-amber-800 hover:bg-amber-900 text-white font-semibold text-sm py-3 px-6 rounded-xl transition shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    disabled
+                >
+                    Kompres PDF
+                </button>
+            </form>
+
+            <!-- Loading Spinner -->
+            <div id="loadingState" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-amber-800 border-t-transparent mb-3"></div>
+                <p class="text-sm font-semibold text-gray-700">Sedang mengompres PDF Anda...</p>
+            </div>
+
+            <!-- Pesan Error -->
+            <div id="errorState" class="hidden mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700"></div>
+        </div>
+
+        <!-- Section Hasil -->
+        <div id="resultContainer" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900 mb-1">PDF Berhasil Dikompres</h2>
+                    <p id="resultSummary" class="text-sm text-gray-500"></p>
+                </div>
+                <a
+                    id="downloadBtn"
+                    href="#"
+                    download="dokumen_terkompres.pdf"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2 shrink-0"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download PDF
+                </a>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const pdfInput = document.getElementById('pdfInput');
+    const fileNameLabel = document.getElementById('fileName');
+    const processBtn = document.getElementById('processBtn');
+    const compressForm = document.getElementById('compressForm');
+    const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultSummary = document.getElementById('resultSummary');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    dropZone.addEventListener('click', () => pdfInput.click());
+
+    pdfInput.addEventListener('change', () => {
+        const file = pdfInput.files[0];
+        if (file) {
+            fileNameLabel.innerText = `File Terpilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            processBtn.disabled = false;
+        } else {
+            fileNameLabel.innerText = 'Klik atau seret file PDF ke sini';
+            processBtn.disabled = true;
+        }
+    });
+
+    compressForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const originalFile = pdfInput.files[0];
+        const formData = new FormData();
+        formData.append('pdf', originalFile);
+        formData.append('preset', compressForm.querySelector('input[name="preset"]:checked').value);
+        formData.append('_csrf', document.getElementById('csrfInput').value);
+
+        loadingState.classList.remove('hidden');
+        errorState.classList.add('hidden');
+        resultContainer.classList.add('hidden');
+        processBtn.disabled = true;
+
+        try {
+            const response = await fetch('/tools/process-compress-pdf', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Gagal mengompres PDF.');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const persenHemat = Math.max(0, Math.round((1 - blob.size / originalFile.size) * 100));
+
+            resultSummary.innerText = `${(originalFile.size / 1024).toFixed(1)} KB → ${(blob.size / 1024).toFixed(1)} KB (hemat ~${persenHemat}%)`;
+            downloadBtn.href = url;
+            resultContainer.classList.remove('hidden');
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+            console.error(err);
+            errorState.innerText = err.message || 'Terjadi kesalahan saat mengompres PDF.';
+            errorState.classList.remove('hidden');
+        } finally {
+            loadingState.classList.add('hidden');
+            processBtn.disabled = false;
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

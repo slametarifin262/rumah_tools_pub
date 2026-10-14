@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>RumahTools - Solusi Utilitas & Alat Digital Anda</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="/assets/js/csrf.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Keyframe untuk Running Ticker / Marquee */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: marquee 25s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused; /* Berhenti sejenak saat kursor hover */
+        }
+    </style>
+</head>
+<body class="bg-slate-950 antialiased">
+
+    <!-- ======================================================== -->
+    <!-- 1. HERO / BANNER FIXATED DI BACKGROUND (Tanpa Blur)      -->
+    <!-- ======================================================== -->
+    <header class="fixed top-0 left-0 w-full h-screen z-0 flex items-center justify-center bg-cover bg-center"
+            style="background-image: url('https://i2.wp.com/www.emporiointerior.com/upload/blog/ide-desain-interior-rumah-modern-di-semarang-desain-interior-ruang-kantor-dan-gudang-pada-hunian-bapak-ardi-part-8-29092210474619473.jpg');">
+        
+        <!-- Dark Overlay Tipis (40%) Tanpa Blur agar Gambar Sangat Jelas -->
+        <div class="absolute inset-0 bg-slate-950/40"></div>
+
+        <!-- Banner Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white space-y-6">
+            <!-- Badge -->
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/30 text-amber-300 border border-amber-400/40 backdrop-blur-md shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Platform Alat Utilitas Digital Terpadu
+            </span>
+
+            <a href="#"
+               onclick="openDonateModal(); return false;"
+               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/30 text-amber-300 border border-amber-400/40 backdrop-blur-md shadow-lg cursor-pointer hover:bg-amber-500/40 transition">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Dukung Kami
+            </a>
+
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight drop-shadow-md">
+                Efisiensi Pekerjaan Anda dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">RumahTools</span>
+            </h1>
+
+            <p class="text-base sm:text-xl text-slate-100 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow">
+                Kelola konversi dokumen, generator kode, hingga sistem pembayaran Virtual Account dalam satu tempat kerja yang terorganisir.
+            </p>
+
+            <!-- Scroll Indicator -->
+            <div class="pt-8 flex flex-col items-center justify-center gap-2 text-slate-200 text-xs font-medium animate-bounce drop-shadow">
+                <span>Gulir ke bawah untuk melihat fitur</span>
+                <i class="fa-solid fa-chevron-down text-amber-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- 2. KONTEN UTAMA (<main>) YANG MELUNCUR NAIK MENUTUPI HERO -->
+    <!-- ======================================================== -->
+    <main class="relative z-10 mt-[100vh] bg-slate-50 min-h-screen rounded-t-[2.5rem] shadow-[0_-25px_60px_rgba(0,0,0,0.5)] border-t border-white/40 flex flex-col justify-between">
+        
+        <div>
+            <!-- Handle Bar (Aksen Estetik Top Sheet) -->
+            <div class="flex justify-center pt-4">
+                <div class="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                <!-- Section Title -->
+                <div class="text-center mb-12 space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Pilih Layanan & Tools</h2>
+                    <p class="text-sm text-slate-500">Semua utilitas yang Anda butuhkan untuk produktivitas harian.</p>
+                </div> 
+
+                <!-- Grid Tools -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Kalender -->
+                <a href="/tools/kalender" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Kalender Kerja & Peringatan</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Jadwal hari besar, agenda Pemkab Cilacap, dan penyesuaian tanggal keagamaan.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Short Link -->
+                <a href="/tools/short-link" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-link"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Generate Short Link</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Konversi URL panjang Anda menjadi link ringkas yang profesional dan mudah dibagikan.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- QR Code -->
+                <a href="/tools/qr-code" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">QR Code Generator</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Buat QR Code kustom dari tautan, teks, atau kontak dengan kualitas tinggi.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Barcode -->
+                <a href="/tools/barcode" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-barcode"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Barcode Generator</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Hasilakn kode batang standar industri untuk inventaris dan produk Anda.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- PDF Merge -->
+                <a href="/tools/pdf-merge" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">PDF Merge</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Gabungkan beberapa dokumen PDF menjadi satu berkas secara urut dan rapi.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- PDF Watermark -->
+                <a href="/tools/pdf-watermark" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-stamp"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">PDF Watermark</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Amankan dokumen PDF Anda dengan tanda air teks atau gambar kustom.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- PDF Signature -->
+                <a href="/tools/pdf-signature" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-signature"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">PDF Signature</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Bubuhkan tanda tangan digital pada berkas dokumen secara langsung dan presisi.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Number to Text -->
+                <a href="/tools/number-to-text" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-font-case"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Number to Text</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Konversi otomatis nominal angka menjadi kalimat terbilang untuk kuitansi/nota.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Currency Detection -->
+                <a href="/tools/currency-detection" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Currency Detection</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Deteksi dan ekstrak format mata uang secara otomatis dari dokumen teks.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Text to Speech -->
+                <a href="/tools/text-to-speech" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Text to Speech</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ubah naskah tulisan menjadi audio narasi alami langsung dari browser.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Generate Password -->
+                <a href="/tools/password-generator" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Generate Password</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Hasilkan kata sandi kuat dan aman berstandar enkripsi tinggi.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Background Remover -->
+                <a href="/tools/background-remover" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-image"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Background Remover</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Hapus latar belakang foto objek/orang secara otomatis dan efisien.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>  
+                <!-- Foto Geotag -->
+                <a href="/tools/geotag" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Foto Geotag</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Tambahkan watermark lokasi, koordinat GPS, timestamp, dan QR verifikasi keaslian pada foto.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Aplikasi Kasir / POS -->
+                <a href="/tools/kasir" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-cash-register"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Aplikasi Kasir (POS)</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Sistem kasir digital untuk mencatat penjualan, kelola produk, dan mencetak struk transaksi.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a> 
+                <!-- Resize & Kompres Gambar -->
+                <a href="/tools/resize-image" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-expand-wide"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Resize & Kompres Gambar</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ubah dimensi gambar menjadi lebih besar/kecil dan atur tingkat kompresi file (JPG, PNG, WebP).</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Kompres Dokumen PDF -->
+                <a href="/tools/compress-pdf" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Kompres Dokumen PDF</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Kecilkan ukuran file PDF dokumen/laporan tanpa mengorbankan keterbacaan teks.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+
+                <a href="/tools/kalkulator-bisnis" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Kalkulator Bisnis UMKM</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Hitung margin keuntungan, markup, PPN, diskon produk, hingga titik impas (BEP) untuk operasional usaha Anda.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+                <a href="/tools/undian" class="group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-arrows-spin"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition">Roda Undian Custom</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Papan undian acak berputar untuk doorprize, acak nama pemenang, pilihan kelompok, dan giveaway secara transparan.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                        <span>Buka Tools</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+                </div>
+
+                <!-- [AREA FORM DONASI / KONTEN UTAMA LAINNYA DAPAT DITARUH DI SINI] -->
+
+            </div>
+        <section id="keunggulan" class="scroll-mt-24 pt-8" style="margin:1%">
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-2xl">
+                <!-- Background Glow decorative -->
+                <div class="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10 max-w-3xl mb-12">
+                    <span class="text-blue-400 font-semibold text-xs uppercase tracking-wider">Keunggulan Rumah Tools</span>
+                    <h2 class="text-2xl sm:text-4xl font-bold mt-2">Rumah Lengkap untuk Semua Kebutuhan Produktivitas Anda</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                    <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">Super Cepat & Efisien</h3>
+                        <p class="text-slate-300 text-xs mt-2 leading-relaxed">Selesaikan tugas administratif & teknis harian dalam hitungan detik tanpa instalasi software berat.</p>
+                    </div>
+
+                    <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">Hasil Akurat & Presisi</h3>
+                        <p class="text-slate-300 text-xs mt-2 leading-relaxed">Algoritma modern memastikan konversi dokumen, generator kode, dan pemrosesan gambar berjalan sempurna.</p>
+                    </div>
+
+                    <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">Mudah Digunakan</h3>
+                        <p class="text-slate-300 text-xs mt-2 leading-relaxed">Desain antarmuka bersih dan ramah pengguna, memudahkan siapa saja mengakses tools tanpa panduan rumit.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        </div>
+        
+        <!-- ELEMEN MODAL DONASI LENGKAP -->
+        <div id="donateModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+            <div class="bg-white rounded-3xl max-w-lg w-full mx-4 p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+                
+                <!-- Tombol Close Modal -->
+                <button type="button" onclick="closeDonateModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <!-- Header Modal -->
+                <div class="text-center space-y-1">
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                        <i class="fa-solid fa-heart text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Dukung / Investasi Tools</h3>
+                    <p class="text-xs text-slate-500">Bantu pengembangan server & infrastruktur RumahTools.</p>
+                </div>
+
+                <!-- 1. Pilihan Nominal Donasi & Investasi -->
+                <div class="space-y-3">
+                    <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Pilih Nominal Dukungan:</label>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button type="button" onclick="selectAmount(10000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 10rb</button>
+                        <button type="button" onclick="selectAmount(20000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 20rb</button>
+                        <button type="button" onclick="selectAmount(50000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 50rb</button>
+                        <button type="button" onclick="selectAmount(100000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 100rb</button>
+                        <button type="button" onclick="selectAmount(300000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 300rb</button>
+                        <button type="button" onclick="selectAmount(500000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 500rb</button>
+                        <button type="button" onclick="selectAmount(1000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 1 Juta</button>
+                        <button type="button" onclick="selectAmount(2500000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 2,5 Juta</button>
+                        <button type="button" onclick="selectAmount(5000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 5 Juta</button>
+                        <button type="button" onclick="selectAmount(7000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 7 Juta</button>
+                        <button type="button" onclick="selectAmount(10000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 10 Juta</button>
+                    </div>
+
+                    <!-- Custom Input Nominal -->
+                    <div class="pt-1">
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <span class="text-slate-500 text-xs font-bold">Rp</span>
+                            </div>
+                            <input type="number" id="customAmountInput" oninput="handleCustomAmount(this.value)" placeholder="Atau ketik nominal sendiri..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white outline-none transition">
+                        </div>
+                    </div>
+                </div>
+                <!-- Input Nama Donatur / Perusahaan -->
+                <div class="space-y-1.5">
+                    <label for="donorNameInput" class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Nama Donatur / Perusahaan:</label>
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-user text-slate-400 text-xs"></i>
+                        </div>
+                        <input type="text" id="donorNameInput" placeholder="Masukkan nama Anda / PT / Hamba Allah" class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white outline-none transition font-medium">
+                    </div>
+                </div>
+
+                <!-- 2. Pilihan Metode Pembayaran -->
+                <div class="space-y-2">
+                    <label for="bankSelect" class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Metode Pembayaran:</label>
+                    <select id="bankSelect" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="bca">BCA Virtual Account</option>
+                        <option value="mandiri">Mandiri Virtual Account</option>
+                        <option value="bri">BRI Virtual Account</option>
+                        <option value="bni">BNI Virtual Account</option>
+                        <option value="qris">QRIS / All E-Wallet (GoPay, OVO, ShopeePay)</option>
+                    </select>
+                </div>
+
+                <!-- 3. Hasil VA yang Digenerate (Hidden Status) -->
+                <div id="vaResult" class="hidden bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl text-center space-y-1">
+                    <p class="text-[11px] text-amber-800 font-medium">Nomor Virtual Account untuk Pembayaran:</p>
+                    <p id="vaNumber" class="text-lg font-mono font-extrabold text-slate-900 tracking-wider">--</p>
+                    <p id="vaAmountDisplay" class="text-xs text-slate-600 font-semibold mb-2">Total: Rp 100.000</p>
+                    <button type="button" onclick="copyVA()" class="text-[11px] font-bold text-amber-600 hover:text-amber-700 hover:underline inline-flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Salin Nomor VA
+                    </button>
+                </div>
+
+                <!-- 4. Tombol Submit -->
+                <button type="button" id="btnGenerateVA" onclick="generateVA(event)" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">
+                    Dapatkan Kode Pembayaran
+                </button>
+
+            </div>
+        </div>
+
+        <!-- Area Hasil VA (Tampil setelah klik ambil kode) --> <!-- Modal Background Overlay -->
+        <div id="vaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+            
+            <!-- Modal Box Content -->
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative space-y-4">
+                
+                <!-- Tombol Close Modal -->
+                <button onclick="closeVaModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <h3 class="text-base font-bold text-slate-800 text-center">Instruksi Pembayaran</h3>
+
+                <!-- Area Hasil VA -->
+                <div id="vaResult" class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
+                    <p class="text-xs font-semibold text-slate-500">Nomor Virtual Account Anda:</p>
+                    <div id="vaNumber_sim" class="text-xl font-mono font-bold text-amber-600 tracking-wider"></div>
+                    <div id="vaAmountDisplay_sim" class="text-xs text-slate-600"></div>
+
+                    <hr class="border-slate-200">
+
+                    <!-- Tombol Testing Simulasi -->
+                    <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <p class="text-[10px] font-bold text-amber-800 uppercase mb-1">⚡ Mode Pengujian (Testing Only):</p>
+                        <button type="button" id="btnSimulatePay" onclick="simulatePayment()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> Simulasi Bayar VA Sekarang
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- 3. FOOTER (Ditaruh di bagian paling bawah halaman utama) -->
+        <!-- ======================================================== -->
+        <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 mt-16">
+            <!-- RUNNING TICKER / MARQUEE SPONSOR & DONATUR -->
+            <section class="bg-slate-900 text-slate-300 py-2.5 overflow-hidden border-b border-slate-800 relative shadow-inner">
+                <div class="flex items-center max-w-7xl mx-auto">
+                    
+                    <!-- Label Tetap di Sisi Kiri -->
+                    <div class="z-10 bg-slate-900 px-4 flex items-center gap-2 text-[11px] font-bold text-amber-400 uppercase tracking-wider shrink-0 border-r border-slate-800">
+                        <i class="fa-solid fa-heart animate-pulse"></i>
+                        <span class="hidden sm:inline">Pendukung & Investor:</span>
+                    </div>
+
+                    <!-- Area Teks Berjalan (Infinite Loop) -->
+                    <div class="overflow-hidden w-full relative">
+                        <div class="animate-marquee flex items-center gap-8 text-xs font-medium">
+                             <% if (typeof donations !== 'undefined' && donations.length > 0) { %>
+                            <% donations.forEach(donor => { %>
+                                <% if (donor.status === 0) { %>
+                                    <!-- Status 0: Menunggu Pembayaran (Warna Abu-abu / Muted) -->
+                                    <div class="flex items-center gap-2 bg-slate-800/30 px-3 py-1 rounded-full border border-slate-700/30 opacity-60 text-slate-400">
+                                        <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
+                                        <span><%= donor.donor_name || donor.name %></span>
+                                        <span class="text-slate-500 font-mono text-[10px]">(Rp <%= Number(donor.amount).toLocaleString('id-ID') %> - Menunggu)</span>
+                                    </div>
+                                <% } else { %>
+                                    <!-- Status 1: Sudah Transfer (Warna Normal / Bright) -->
+                                    <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700/80 text-slate-200 font-semibold">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                                        <span><%= donor.donor_name || donor.name %></span>
+                                        <span class="text-emerald-400 font-mono text-[10px]">(Rp <%= Number(donor.amount).toLocaleString('id-ID') %>)</span>
+                                    </div>
+                                <% } %>
+                            <% }); %>
+                        <% } else { %>
+                            <!-- Tampilan default jika belum ada data donasi di MySQL -->
+                            <span class="text-slate-500 italic text-xs">Belum ada aktivitas donasi.</span>
+                        <% } %>
+                        <!-- </div> -->
+        <!-- <div class="animate-marquee flex items-center gap-8 text-xs font-medium"> -->
+                            
+                            <!-- SET 1 (Dummy Data) -->
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Budi" alt="Logo" class="w-4 h-4 rounded-full">
+                                <span>Budi Santoso <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 50.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-building text-blue-400 text-xs"></i>
+                                <span class="font-bold text-slate-200">PT Digital Karya Nusantara</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Siti" alt="Logo" class="w-4 h-4 rounded-full">
+                                <span>Siti Rahma <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 25.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-user-ninja text-amber-400 text-xs"></i>
+                                <span>Hamba Allah <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 100.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-rocket text-indigo-400 text-xs"></i>
+                                <span class="font-bold text-slate-200">TechLab Ventures</span>
+                            </div>
+
+                            <!-- DUPLIKASI SET (Wajib ada agar animasi berjalan tanpa patah/seamless) -->
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Budi" alt="Logo" class="w-4 h-4 rounded-full">
+                                <span>Budi Santoso <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 50.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-building text-blue-400 text-xs"></i>
+                                <span class="font-bold text-slate-200">PT Digital Karya Nusantara</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Siti" alt="Logo" class="w-4 h-4 rounded-full">
+                                <span>Siti Rahma <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 25.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-user-ninja text-amber-400 text-xs"></i>
+                                <span>Hamba Allah <span class="text-emerald-400 font-mono text-[10px] ml-1">(Rp 100.000)</span></span>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <i class="fa-solid fa-rocket text-indigo-400 text-xs"></i>
+                                <span class="font-bold text-slate-200">TechLab Ventures</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    
+                    <!-- Kolom 1: Brand Info -->
+                    <div class="space-y-4 md:col-span-1">
+                        <div class="flex items-center gap-2 text-white font-bold text-lg">
+                            <i class="fa-solid fa-toolbox text-amber-500"></i> RumahTools
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Kumpulan alat utilitas digital serba guna untuk mendukung kemudahan pekerjaan kantor dan harian Anda.
+                        </p>
+                    </div>
+
+                    <!-- Kolom 2: Navigasi Tools -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-semibold text-white uppercase tracking-wider">Layanan Tools</h4>
+                        <ul class="space-y-2 text-xs">
+                            <li><a href="/tools/kalender" class="hover:text-amber-400 transition">Kalender Peringatan</a></li>
+                            <li><a href="/tools/short-link" class="hover:text-amber-400 transition">Short Link Generator</a></li>
+                            <li><a href="/tools/qr-code" class="hover:text-amber-400 transition">QR Code Generator</a></li>
+                            <li><a href="/tools/pdf-merge" class="hover:text-amber-400 transition">Penggabung PDF</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 3: Tautan Pintar -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-semibold text-white uppercase tracking-wider">Tautan</h4>
+                        <ul class="space-y-2 text-xs">
+                            <li><a href="/" class="hover:text-amber-400 transition">Beranda</a></li>
+                            <li><a href="/login" class="hover:text-amber-400 transition">Login Admin</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 4: Kontak & Socials -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-semibold text-white uppercase tracking-wider">Hubungi Kami</h4>
+                        <p class="text-xs text-slate-400">Butuh bantuan atau integrasi khusus?</p>
+                        <div class="flex gap-3 text-slate-400 pt-1"> 
+                            <button type="button" onclick="openDonateModal()" class="text-xs font-medium text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 hover:border-amber-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-mug-hot text-amber-500"></i>
+                                <h4 class="text-xs font-semibold uppercase text-white">Dukung Kami</h4>
+                            </button> 
+                            <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition"><i class="fa-brands fa-github text-sm"></i></a>
+                            <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition"><i class="fa-brands fa-linkedin text-sm"></i></a>
+                            <a href="#" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition"><i class="fa-solid fa-envelope text-sm"></i></a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
+                    &copy; 2026 RumahTools. All rights reserved. Designed for optimal workplace efficiency.
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+<script>
+    // Variabel global
+    let selectedDonationAmount = 0;
+    let currentActiveVA = "";
+
+    // Format Angka ke Format Rupiah (e.g. 100000 -> "Rp 100.000")
+    function formatRupiah(amount) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+    }
+
+    function openDonateModal() {
+        const modal = document.getElementById('donateModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    }
+
+    function closeDonateModal() {
+        const modal = document.getElementById('donateModal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    function selectAmount(amount, element) {
+        selectedDonationAmount = amount;
+
+        // Isi nilai ke input custom
+        const customAmountInput = document.getElementById('customAmountInput');
+        if (customAmountInput) {
+            customAmountInput.value = amount;
+        }
+
+        // Mengubah tampilan tombol yang diklik
+        if (element) {
+            document.querySelectorAll('.btn-amount').forEach(btn => {
+                btn.className = "btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1";
+                const icon = btn.querySelector('.fa-check');
+                if (icon) icon.remove();
+            });
+
+            element.className = "btn-amount border-2 border-amber-500 bg-amber-50 py-2.5 px-2 rounded-xl text-xs font-bold text-amber-700 shadow-sm transition flex items-center justify-center gap-1";
+            
+            const checkIcon = document.createElement('i');
+            checkIcon.className = "fa-solid fa-check text-[10px] text-amber-600";
+            element.prepend(checkIcon);
+        }
+    }
+
+    function handleCustomAmount(value) {
+        if (value && parseInt(value) > 0) {
+            selectedDonationAmount = parseInt(value);
+            
+            document.querySelectorAll('.btn-amount').forEach(btn => {
+                btn.className = "btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1";
+                const icon = btn.querySelector('.fa-check');
+                if (icon) icon.remove();
+            });
+        }
+    }
+    // 1. FUNGSI UNTUK MENGIRIM DONASI & MEMANGGIL MODAL
+    async function generateVA(event) {
+        if (event) event.preventDefault();
+
+        // 1. Ambil nilai dari input form
+        const amountInput = document.getElementById('customAmountInput')?.value || '';
+        const donorName = document.getElementById('donorNameInput')?.value || 'Hamba Allah';
+        const bank = document.getElementById('bankSelect')?.value || 'BCA';
+
+        // Bersihkan format non-angka
+        const cleanAmount = parseInt(String(amountInput).replace(/[^0-9]/g, ''), 10);
+
+        if (!cleanAmount || isNaN(cleanAmount) || cleanAmount <= 0) {
+            alert('Masukkan nominal donasi yang valid.');
+            return;
+        }
+
+        try {
+            // 2. Kirim data donasi ke server
+            const response = await fetch('/api/donations/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: donorName,
+                    amount: cleanAmount,
+                    bank: bank
+                })
+            });
+
+            const result = await response.json();
+
+            // 3. DI SINI DIPANGGIL: Saat respon dari server menyatakan sukses
+            if (result.success) {
+                // 🔴 PANGGIL showVaModal DENGAN MEMBAWA DATA DARI SERVER 🔴
+                // alert(result.vaNumber+':'+result.amount);
+                showVaModal(result.vaNumber, result.amount);
+            } else {
+                alert('Gagal membuat VA: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan koneksi ke server.');
+        }
+    }
+
+    // Fungsi showVaModal itu sendiri bertugas mengisi teks & menampilkan modal
+
+    let currentVaNumber = '';
+    function showVaModal(vaNumber, amount) {
+        alert(vaNumber+'>>'+ amount);
+        // Isi data ke dalam elemen HTML modal
+        document.getElementById('vaNumber_sim').innerText = vaNumber;
+        document.getElementById('vaAmountDisplay_sim').innerText = `Total: Rp ${Number(amount).toLocaleString('id-ID')}`;
+        currentActiveVA = vaNumber;
+
+        // Tampilkan Modal (Ubah class hidden menjadi flex)
+        const modal = document.getElementById('vaModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+    // Fungsi Menambahkan Donatur ke Ticker Berjalan secara Dinamis
+    function appendDonorToTicker(name, amount, status, vaNumber) {
+        const marqueeContainer = document.querySelector('.animate-marquee');
+        if (!marqueeContainer) return;
+
+        const donorCard = document.createElement('div');
+        if (vaNumber) {
+            donorCard.setAttribute('data-va', vaNumber);
+        }
+
+        if (status === 0) {
+            donorCard.className = "donor-item flex items-center gap-2 bg-slate-800/30 px-3 py-1 rounded-full border border-slate-700/30 opacity-60 text-slate-400 transition-all";
+            donorCard.innerHTML = `
+                <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
+                <span>${name}</span>
+                <span class="text-slate-500 font-mono text-[10px]">(Rp ${amount.toLocaleString('id-ID')} <span class="status-text">- Menunggu</span>)</span>
+            `;
+        } else {
+            donorCard.className = "donor-item flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700/80 shadow-sm transition-all";
+            donorCard.innerHTML = `
+                <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                <span class="text-slate-200 font-bold">${name}</span>
+                <span class="text-emerald-400 font-mono text-[10px]">(${formatRupiah(amount)})</span>
+            `;
+        }
+
+        marqueeContainer.prepend(donorCard);
+    }
+
+    function copyVA() {
+        const vaText = document.getElementById('vaNumber').innerText;
+        navigator.clipboard.writeText(vaText);
+        alert("Nomor Virtual Account berhasil disalin!");
+    }
+    // Fungsi Tutup Modal
+    function closeVaModal() {
+        const modal = document.getElementById('vaModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    async function simulatePayment() {
+        // Ambil nilai VA langsung dari teks elemen HTML jika variabel global kosong
+        const vaToPay = currentActiveVA || document.getElementById('vaNumber')?.innerText?.trim();
+
+        if (!vaToPay) {
+            alert("Nomor VA tidak ditemukan!");
+            return;
+        }
+
+        try {
+            // CATATAN: ini tombol simulasi (dummy) untuk testing tanpa payment gateway asli.
+            // Endpoint /api/donations/simulate TERPISAH dari /api/donations/webhook (yang asli),
+            // dan dilindungi CSRF token (bukan secret webhook) karena dipanggil dari browser.
+            const response = await fetch('/api/donations/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ va_number: vaToPay })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("🎉 Pembayaran Berhasil! Status telah diubah menjadi Terbayar.");
+                closeVaModal();
+                location.reload(); // Refresh halaman untuk melihat status terbaru
+            } else {
+                alert("Gagal memperbarui status: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error simulasi:", error);
+            alert("Terjadi kesalahan saat memproses pembayaran.");
+        }
+    }
+
+    function updateTickerUI(vaNumber) {
+        const donorElement = document.querySelector(`[data-va="${vaNumber}"]`);
+        if (donorElement) {
+            donorElement.className = "donor-item flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700/80 text-slate-200 font-semibold shadow-sm transition-all";
+            
+            const icon = donorElement.querySelector('i');
+            if (icon) icon.className = "fa-solid fa-circle-check text-emerald-400 text-xs";
+
+            const statusSpan = donorElement.querySelector('.status-text');
+            if (statusSpan) statusSpan.remove();
+        }
+    }
+</script>
+</body>
+</html>

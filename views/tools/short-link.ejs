@@ -1,0 +1,97 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="py-8 bg-gray-50 min-h-screen">
+    <!-- Container Lebar 3/4 Halaman -->
+    <div class="w-full lg:w-3/4 max-w-5xl mx-auto px-4">
+        
+        <!-- Box Input URL -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1">Short Link Generator</h1>
+            <p class="text-sm text-gray-500 mb-6">Persingkat URL panjang Anda dengan mudah dan racik tautan singkat untuk dibagikan.</p>
+            <form action="/tools/short-link" method="POST" class="flex flex-col sm:flex-row gap-3">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input
+                    type="url" 
+                    name="original_url" 
+                    placeholder="Masukkan URL panjang di sini (contoh: https://domain.com/halaman-panjang)" 
+                    required 
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition"
+                >
+                <button 
+                    type="submit" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-xl transition shadow-sm"
+                >
+                    Persingkat URL
+                </button>
+            </form>
+        </div>
+
+        <!-- Tabel Riwayat URL Terbuat -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Daftar Tautan Terbaru</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-xs font-bold uppercase text-gray-500 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-4">URL Asli</th>
+                            <th class="py-3 px-4">Short Link</th>
+                            <th class="py-3 px-4 text-center">Total Klik</th>
+                            <th class="py-3 px-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <% if (typeof urls !== 'undefined' && urls && urls.length > 0) { %>
+                            <% urls.forEach(item => { %>
+                                <% const fullShortUrl = protocol + '://' + host + '/s/' + item.short_code; %>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-3 px-4 max-w-xs truncate" title="<%= item.original_url %>">
+                                        <a href="<%= item.original_url %>" target="_blank" class="text-gray-700 hover:underline">
+                                            <%= item.original_url %>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4 font-semibold text-blue-600">
+                                        <a href="/s/<%= item.short_code %>" target="_blank" class="hover:underline">
+                                            <%= fullShortUrl %>
+                                        </a>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                                            <%= item.clicks %> x
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <button 
+                                            onclick="copyToClipboard('<%= fullShortUrl %>')" 
+                                            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                                        >
+                                            Salin
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-gray-400">Belum ada tautan yang dibuat.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Short link berhasil disalin!');
+        }).catch(err => {
+            console.error('Gagal menyalin: ', err);
+        });
+    }
+</script>
+
+<%- include('../partials/footer') %>

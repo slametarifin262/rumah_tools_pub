@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>RumahTools - Solusi Utilitas & Alat Digital Anda</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="/assets/js/csrf.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> 
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Keyframe untuk Running Ticker / Marquee */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: marquee 25s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused; /* Berhenti sejenak saat kursor hover */
+        }
+    </style>
+</head>
+<body class="bg-slate-950 antialiased">
+
+    <!-- ======================================================== -->
+    <!-- 1. HERO / BANNER FIXATED DI BACKGROUND (Tanpa Blur)      -->
+    <!-- ======================================================== -->
+    <header class="fixed top-0 left-0 w-full h-screen z-0 flex items-center justify-center bg-cover bg-center"
+            style="background-image: url('https://rumahtools.online/assets/flayer_bg.jpg');">
+
+        <!-- Dark Overlay Tipis (40%) Tanpa Blur agar Gambar Sangat Jelas -->
+        <div class="absolute inset-0 bg-slate-950/40"></div>
+
+        <!-- Banner Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 text-white space-y-6" style="display:none;">
+            <!-- Badge -->
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/30 text-amber-300 border border-amber-400/40 backdrop-blur-md shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Platform Alat Utilitas Digital Terpadu
+            </span>
+
+            <a href="#"
+               onclick="openDonateModal(); return false;"
+               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/30 text-amber-300 border border-amber-400/40 backdrop-blur-md shadow-lg cursor-pointer hover:bg-amber-500/40 transition">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Dukung Kami
+            </a>
+
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight drop-shadow-md">
+                Efisiensi Pekerjaan Anda dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">RumahTools</span>
+            </h1>
+
+            <p class="text-base sm:text-xl text-slate-100 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow">
+                Kelola konversi dokumen, generator kode, hingga sistem pembayaran Virtual Account dalam satu tempat kerja yang terorganisir.
+            </p>
+
+            <!-- Scroll Indicator -->
+            <div class="pt-8 flex flex-col items-center justify-center gap-2 text-slate-200 text-xs font-medium animate-bounce drop-shadow">
+                <span>Gulir ke bawah untuk melihat fitur</span>
+                <i class="fa-solid fa-chevron-down text-amber-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- 2. KONTEN UTAMA (<main>) YANG MELUNCUR NAIK MENUTUPI HERO -->
+    <!-- ======================================================== -->
+    <main class="relative z-10 mt-[100vh] bg-slate-50 min-h-screen rounded-t-[2.5rem] shadow-[0_-25px_60px_rgba(0,0,0,0.5)] border-t border-white/40 flex flex-col justify-between">
+        
+        <div>
+            <!-- Handle Bar (Aksen Estetik Top Sheet) -->
+            <div class="flex justify-center pt-4">
+                <div class="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                <!-- Section Title -->
+                <div class="text-center mb-12 space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Pilih Layanan & Tools</h2>
+                    <p class="text-sm text-slate-500">Semua utilitas yang Anda butuhkan untuk produktivitas harian.</p>
+                </div>    
+                
+                
+                <!-- KOTAK PENCARIAN & FILTER KATEGORI -->
+                <div class="max-w-4xl mx-auto my-8 px-4 space-y-4">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <!-- Input Cari Berdasarkan Nama Layanan -->
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="search-input" placeholder="Cari nama layanan (contoh: Undangan, PDF, QR Code)..." 
+                                class="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Filter Berdasarkan Kategori -->
+                        <select id="category-filter" class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
+                            <option value="all">Semua Kategori</option>
+                            <% [...new Set(tools.map(t => t.category))].forEach(cat => { %>
+                            <option value="<%= cat %>"><%= cat %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KONTANER UTAMA TOOLS -->
+                <div id="tools-container" class="max-w-7xl mx-auto px-4 py-8">
+
+                    <!-- Grid Tools -->
+                    <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        <% tools.forEach(tool => { %>
+                        <a href="<%= tool.href %>" class="tool-card group bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between" data-name="<%= tool.title %>" data-category="<%= tool.category %>">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-xl <%= tool.iconBg %> <%= tool.iconText %> flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                        <i class="<%= tool.iconClass %>"></i>
+                                    </div>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full <%= tool.badgeBg %> <%= tool.badgeText %> border <%= tool.badgeBorder %>"><%= tool.badgeLabel %></span>
+                                </div>
+                                <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition"><%= tool.title %></h3>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed"><%= tool.desc %></p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                                <span>Buka Tools</span>
+                                <i class="fa-solid fa-chevron-right ml-1 text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                        </a>
+                        <% }); %>
+                    </div> 
+
+                    <!-- Tombol Lihat Lebih Banyak Tools -->
+                    <div class="mt-12 text-center" id="load-more-wrapper">
+                        <button id="load-more-btn" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 transform active:scale-95">
+                            <span>Lihat Lebih Banyak Tools</span>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-300 group-hover:translate-y-0.5"></i>
+                        </button>
+                        <p id="tools-counter" class="text-xs text-slate-400 mt-3 font-medium">
+                            Menampilkan <span id="current-count">6</span> dari <span id="total-count">18</span> tools
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- CSS Tambahan untuk Efek Animasi Sliding Smooth -->
+                <style>
+                    .tool-card {
+                        will-change: transform, opacity;
+                    }
+                    
+                    .tool-card.slide-in {
+                        animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    }
+
+                    @keyframes slideDownFade {
+                        0% {
+                            opacity: 0;
+                            transform: translateY(-20px) scale(0.97);
+                        }
+                        100% {
+                            opacity: 1;
+                            transform: translateY(0) scale(1);
+                        }
+                    }
+                </style>
+
+                <!-- Script JS Pencarian, Filter Kategori & Pagination/Load More -->
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const BATCH_SIZE = 6;
+                        let visibleCount = BATCH_SIZE;
+
+                        const cards = Array.from(document.querySelectorAll(".tool-card"));
+                        const loadMoreBtn = document.getElementById("load-more-btn");
+                        const loadMoreWrapper = document.getElementById("load-more-wrapper");
+                        const currentCountEl = document.getElementById("current-count");
+                        const totalCountEl = document.getElementById("total-count");
+                        const searchInput = document.getElementById("search-input");
+                        const categoryFilter = document.getElementById("category-filter");
+
+                        // Cocokkan kartu terhadap kata kunci pencarian (data-name) & kategori (data-category)
+                        function matchesFilter(card) {
+                            const keyword = searchInput.value.trim().toLowerCase();
+                            const category = categoryFilter.value;
+
+                            const name = (card.dataset.name || "").toLowerCase();
+                            const cardCategory = card.dataset.category || "";
+
+                            const matchKeyword = !keyword || name.includes(keyword);
+                            const matchCategory = category === "all" || cardCategory === category;
+
+                            return matchKeyword && matchCategory;
+                        }
+
+                        // Terapkan filter pencarian/kategori, lalu terapkan pagination (Load More)
+                        function updateVisibility() {
+                            const matched = cards.filter(matchesFilter);
+                            const matchedSet = new Set(matched);
+
+                            cards.forEach((card) => {
+                                if (!matchedSet.has(card)) {
+                                    card.classList.add("hidden");
+                                    card.classList.remove("slide-in");
+                                }
+                            });
+
+                            matched.forEach((card, index) => {
+                                if (index < visibleCount) {
+                                    if (card.classList.contains("hidden")) {
+                                        card.classList.remove("hidden");
+                                        card.classList.add("slide-in");
+                                    }
+                                } else {
+                                    card.classList.add("hidden");
+                                    card.classList.remove("slide-in");
+                                }
+                            });
+
+                            totalCountEl.textContent = matched.length;
+                            currentCountEl.textContent = Math.min(visibleCount, matched.length);
+
+                            // Sembunyikan tombol "Lihat Lebih Banyak" kalau semua hasil filter sudah tampil
+                            if (visibleCount >= matched.length) {
+                                loadMoreBtn.classList.add("hidden");
+                            } else {
+                                loadMoreBtn.classList.remove("hidden");
+                            }
+
+                            // Pesan kalau tidak ada hasil sama sekali
+                            let emptyState = document.getElementById("tools-empty-state");
+                            if (matched.length === 0) {
+                                if (!emptyState) {
+                                    emptyState = document.createElement("div");
+                                    emptyState.id = "tools-empty-state";
+                                    emptyState.className = "col-span-full text-center py-12 text-slate-400 text-sm";
+                                    emptyState.innerHTML = '<i class="fa-solid fa-magnifying-glass text-2xl mb-3 block"></i>Tidak ada layanan yang cocok dengan pencarian Anda.';
+                                    document.getElementById("tools-grid").appendChild(emptyState);
+                                }
+                                emptyState.classList.remove("hidden");
+                            } else if (emptyState) {
+                                emptyState.classList.add("hidden");
+                            }
+                        }
+
+                        // Jalankan fungsi awal
+                        updateVisibility();
+
+                        // Reset ke halaman pertama (batch awal) tiap kali pencarian/kategori berubah
+                        searchInput.addEventListener("input", function () {
+                            visibleCount = BATCH_SIZE;
+                            updateVisibility();
+                        });
+                        categoryFilter.addEventListener("change", function () {
+                            visibleCount = BATCH_SIZE;
+                            updateVisibility();
+                        });
+
+                        // Event listener klik tombol Load More
+                        loadMoreBtn.addEventListener("click", function () {
+                            visibleCount += BATCH_SIZE;
+                            updateVisibility();
+
+                            // Auto smooth scroll sedikit ke bawah agar user menyadari adanya items baru
+                            const matched = cards.filter(matchesFilter);
+                            const firstNewIndex = visibleCount - BATCH_SIZE;
+                            if (matched[firstNewIndex]) {
+                                setTimeout(() => {
+                                    matched[firstNewIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                }, 100);
+                            }
+                        });
+                    });
+                </script>
+
+            </div>
+
+            <!-- SECTION KEUNGGULAN -->
+            <section id="keunggulan" class="scroll-mt-24 pt-8" style="margin:1%">
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-2xl">
+                    <!-- Background Glow decorative -->
+                    <div class="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
+
+                    <div class="relative z-10 max-w-3xl mb-12">
+                        <span class="text-blue-400 font-semibold text-xs uppercase tracking-wider">Keunggulan Rumah Tools</span>
+                        <h2 class="text-2xl sm:text-4xl font-bold mt-2">Rumah Lengkap untuk Semua Kebutuhan Produktivitas Anda</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                        <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-4">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
+                            <h3 class="font-bold text-lg">Super Cepat & Efisien</h3>
+                            <p class="text-slate-300 text-xs mt-2 leading-relaxed">Selesaikan tugas administratif & teknis harian dalam hitungan detik tanpa instalasi software berat.</p>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg mb-4">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <h3 class="font-bold text-lg">Hasil Akurat & Presisi</h3>
+                            <p class="text-slate-300 text-xs mt-2 leading-relaxed">Algoritma modern memastikan konversi dokumen, generator kode, dan pemrosesan gambar berjalan sempurna.</p>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg mb-4">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h3 class="font-bold text-lg">Mudah Digunakan</h3>
+                            <p class="text-slate-300 text-xs mt-2 leading-relaxed">Desain antarmuka bersih dan ramah pengguna, memudahkan siapa saja mengakses tools tanpa panduan rumit.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+        
+        <!-- ELEMEN MODAL DONASI LENGKAP -->
+        <div id="donateModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+            <div class="bg-white rounded-3xl max-w-lg w-full mx-4 p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+                
+                <!-- Tombol Close Modal -->
+                <button type="button" onclick="closeDonateModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <!-- Header Modal -->
+                <div class="text-center space-y-1">
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                        <i class="fa-solid fa-heart text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Dukung / Investasi Tools</h3>
+                    <p class="text-xs text-slate-500">Bantu pengembangan server & infrastruktur RumahTools.</p>
+                </div>
+
+                <!-- 1. Pilihan Nominal Donasi & Investasi -->
+                <div class="space-y-3">
+                    <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Pilih Nominal Dukungan:</label>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button type="button" onclick="selectAmount(10000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 10rb</button>
+                        <button type="button" onclick="selectAmount(20000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 20rb</button>
+                        <button type="button" onclick="selectAmount(50000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 50rb</button>
+                        <button type="button" onclick="selectAmount(100000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 100rb</button>
+                        <button type="button" onclick="selectAmount(300000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 300rb</button>
+                        <button type="button" onclick="selectAmount(500000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 500rb</button>
+                        <button type="button" onclick="selectAmount(1000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 1 Juta</button>
+                        <button type="button" onclick="selectAmount(2500000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 2,5 Juta</button>
+                        <button type="button" onclick="selectAmount(5000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 5 Juta</button>
+                        <button type="button" onclick="selectAmount(7000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 7 Juta</button>
+                        <button type="button" onclick="selectAmount(10000000, this)" class="btn-amount border border-slate-200 hover:border-amber-500 py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1">Rp 10 Juta</button>
+                    </div>
+
+                    <!-- Custom Input Nominal -->
+                    <div class="pt-1">
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <span class="text-slate-500 text-xs font-bold">Rp</span>
+                            </div>
+                            <input type="number" id="customAmountInput" oninput="handleCustomAmount(this.value)" placeholder="Atau ketik nominal sendiri..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white outline-none transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Nama Donatur / Perusahaan -->
+                <div class="space-y-1.5">
+                    <label for="donorNameInput" class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Nama Donatur / Perusahaan:</label>
+                    <div class="relative rounded-xl shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-user text-slate-400 text-xs"></i>
+                        </div>
+                        <input type="text" id="donorNameInput" placeholder="Masukkan nama Anda / PT / Hamba Allah" class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white outline-none transition font-medium">
+                    </div>
+                </div>
+
+                <!-- 2. Pilihan Metode Pembayaran -->
+                <div class="space-y-2">
+                    <label for="bankSelect" class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Metode Pembayaran:</label>
+                    <select id="bankSelect" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="bca">BCA Virtual Account</option>
+                        <option value="mandiri">Mandiri Virtual Account</option>
+                        <option value="bri">BRI Virtual Account</option>
+                        <option value="bni">BNI Virtual Account</option>
+                        <option value="qris">QRIS / All E-Wallet (GoPay, OVO, ShopeePay)</option>
+                    </select>
+                </div>
+
+                <!-- 3. Hasil VA yang Digenerate (Hidden Status) -->
+                <div id="vaResult" class="hidden bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl text-center space-y-1">
+                    <p class="text-[11px] text-amber-800 font-medium">Nomor Virtual Account untuk Pembayaran:</p>
+                    <p id="vaNumber" class="text-lg font-mono font-extrabold text-slate-900 tracking-wider">--</p>
+                    <p id="vaAmountDisplay" class="text-xs text-slate-600 font-semibold mb-2">Total: Rp 0</p>
+                    <button type="button" onclick="copyVA()" class="text-[11px] font-bold text-amber-600 hover:text-amber-700 hover:underline inline-flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Salin Nomor VA
+                    </button>
+                </div>
+
+                <!-- 4. Tombol Submit Donasi -->
+                <button type="button" id="submitDonateBtn" onclick="processDonation()" class="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Proses Dukungan</span>
+                </button>
+
+            </div>
+        </div>
+    </main> 
+    <!-- PROMO POPUP MODAL (Lebar 80% / max-w-5xl) -->
+<div id="promoModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 hidden">
+    <div class="relative w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 text-slate-100 transform transition-all scale-95 opacity-0 duration-300 overflow-y-auto max-h-[90vh]" id="modalContent">
+        
+        <!-- Tombol Close (X) -->
+        <button onclick="closePromoModal()" class="absolute top-4 right-4 z-10 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-full transition shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <!-- Header Title -->
+        <div class="text-center max-w-2xl mx-auto mb-8">
+            <span class="inline-block bg-amber-500/10 text-amber-400 text-xs font-semibold px-3.5 py-1 rounded-full mb-3 border border-amber-500/20">
+                ✨ Penawaran Eksklusif Akhir Tahun 2026
+            </span>
+            <h3 class="text-2xl md:text-3xl font-bold tracking-tight text-white">Solusi Digital & Produktivitas Bisnis</h3>
+            <p class="text-slate-400 text-sm mt-1">Pilih penawaran terbaik untuk memaksimalkan efisiensi kerja kantor dan UMKM Anda.</p>
+        </div>
+
+        <!-- Grid 2 Card Berbeda -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+             <!-- Card 1: Layanan Pembuatan Sistem -->
+<div class="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden flex flex-col justify-between shadow-lg group hover:border-amber-500/50 transition">
+    <div>
+        <!-- Banner dengan Desain Gradien & Ilustrasi Profesional -->
+        <div class="relative h-44 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/40 flex items-center justify-center p-6 text-center">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-amber-500/30 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h5 class="text-white font-bold text-base tracking-wide">Custom Software & System</h5>
+                <p class="text-slate-400 text-xs mt-1">Solusi Otomasi & Skala Enterprise</p>
+            </div>
+            <span class="absolute bottom-3 left-3 bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-md shadow">
+                Diskon s.d 26%
+            </span>
+        </div>
+        <div class="p-5">
+            <h4 class="text-lg font-bold text-white mb-2">Layanan Pembuatan Sistem Kustom</h4>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                Buat sistem atau aplikasi bisnis khusus sesuai kebutuhan kantor/UMKM Anda. Dapatkan potongan harga spesial <span class="text-amber-400 font-bold">hingga 26%</span> yang berlaku sampai akhir tahun 2026.
+            </p>
+        </div>
+    </div>
+    <div class="p-5 pt-0">
+        <a href="#contact" onclick="closePromoModal()" class="block w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-center text-sm transition shadow-md">
+            Pesan Pembuatan Sistem
+        </a>
+    </div>
+</div>
+
+<!-- Card 2: Join Member Premium -->
+<div class="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden flex flex-col justify-between shadow-lg group hover:border-indigo-500/50 transition">
+    <div>
+        <!-- Banner dengan Desain Gradien & Ilustrasi Profesional -->
+        <div class="relative h-44 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 flex items-center justify-center p-6 text-center">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-500/30 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                </div>
+                <h5 class="text-white font-bold text-base tracking-wide">Akses Fitur Tanpa Batas</h5>
+                <p class="text-slate-400 text-xs mt-1">Produktivitas Kantor & UMKM Maksimal</p>
+            </div>
+            <span class="absolute bottom-3 left-3 bg-emerald-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-md shadow">
+                Gratis 1 Bulan Pertama
+            </span>
+        </div>
+        <div class="p-5">
+            <h4 class="text-lg font-bold text-white mb-2">Akses Fitur Premium Member</h4>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                Nikmati semua utilitas tanpa batas. <strong class="text-emerald-400">Gratis 1 bulan pertama</strong>, selanjutnya hanya <span class="text-amber-400 font-bold">50rb/bulan</span> (cukup sisihkan <span class="text-white font-semibold">Rp2rb/hari</span>) untuk kemudahan kerja Anda.
+            </p>
+        </div>
+    </div>
+    <div class="p-5 pt-0">
+        <a href="#register" onclick="closePromoModal()" class="block w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm transition shadow-md">
+            Gabung Member Sekarang
+        </a>
+    </div>
+</div>
+
+        </div>
+
+        <!-- Footer Modal Action -->
+        <div class="text-center">
+            <button onclick="closePromoModal()" class="text-slate-400 hover:text-white text-sm font-medium underline transition">
+                Tutup dan Lanjutkan ke Website
+            </button>
+        </div>
+
+    </div>
+</div>
+    <!-- SCRIPT JAVASCRIPT MODAL DONASI -->
+    <script>
+        let selectedAmount = 0;
+
+        function openDonateModal() {
+            const modal = document.getElementById('donateModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeDonateModal() {
+            const modal = document.getElementById('donateModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function selectAmount(amount, element) {
+            selectedAmount = amount;
+            document.getElementById('customAmountInput').value = '';
+            
+            // Reset gaya tombol nominal
+            document.querySelectorAll('.btn-amount').forEach(btn => {
+                btn.classList.remove('border-amber-500', 'bg-amber-50', 'text-amber-700');
+                btn.classList.add('border-slate-200', 'text-slate-700');
+            });
+
+            // Beri gaya aktif pada tombol yang dipilih
+            if (element) {
+                element.classList.remove('border-slate-200', 'text-slate-700');
+                element.classList.add('border-amber-500', 'bg-amber-50', 'text-amber-700');
+            }
+        }
+
+        function handleCustomAmount(val) {
+            selectedAmount = parseInt(val) || 0;
+            // Clear gaya tombol terpilih jika mengetik manual
+            document.querySelectorAll('.btn-amount').forEach(btn => {
+                btn.classList.remove('border-amber-500', 'bg-amber-50', 'text-amber-700');
+                btn.classList.add('border-slate-200', 'text-slate-700');
+            });
+        }
+
+        function processDonation() {
+            const donorName = document.getElementById('donorNameInput').value.trim() || 'Hamba Allah';
+            const bank = document.getElementById('bankSelect').value;
+
+            if (selectedAmount <= 0) {
+                alert('Silakan pilih atau ketik nominal dukungan terlebih dahulu.');
+                return;
+            }
+
+            // Contoh simulasi pembuatan nomor Virtual Account
+            const randomVA = Math.floor(1000000000000000 + Math.random() * 9000000000000000);
+            const formattedAmount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(selectedAmount);
+
+            document.getElementById('vaNumber').textContent = randomVA;
+            document.getElementById('vaAmountDisplay').textContent = `Total: ${formattedAmount} (${donorName})`;
+            document.getElementById('vaResult').classList.remove('hidden');
+        }
+
+        function copyVA() {
+            const vaNumber = document.getElementById('vaNumber').textContent;
+            if (vaNumber && vaNumber !== '--') {
+                navigator.clipboard.writeText(vaNumber).then(() => {
+                    alert('Nomor VA berhasil disalin!');
+                }).catch(err => {
+                    alert('Gagal menyalin nomor VA');
+                });
+            }
+        }
+    </script> 
+    <script>
+    // Tentukan durasi jeda sebelum modal muncul kembali (dalam milidetik)
+    // Contoh di bawah: 1 jam = 60 menit * 60 detik * 1000 ms = 3600000 ms
+    // Jika ingin 30 menit, ubah menjadi: 30 * 60 * 1000
+    const PROMO_COOLDOWN_TIME = 60 * 60 * 1000; // 1 Jam
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const lastClosed = localStorage.getItem('promoClosedTime');
+        const now = new Date().getTime();
+
+        // Cek apakah waktu cooldown sudah lewat atau belum pernah ditutup
+        if (!lastClosed || (now - lastClosed > PROMO_COOLDOWN_TIME)) {
+            const modal = document.getElementById('promoModal');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+    });
+
+    function closePromoModal() {
+        const modal = document.getElementById('promoModal');
+        const content = document.getElementById('modalContent');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            // Simpan waktu saat ini ke localStorage saat modal ditutup
+            localStorage.setItem('promoClosedTime', new Date().getTime());
+        }, 300);
+    }
+</script>
+</body>
+</html>
